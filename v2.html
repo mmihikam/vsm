@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Value Stream Mapping</title>
+<style>
+  :root {
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --flag: #d1495b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--slate-100);
+    color: var(--slate-900);
+  }
+  .app { min-height: 100vh; padding: 40px 16px; }
+  @media (min-width: 1024px) { .app { padding: 56px 24px; } }
+  .narrow { max-width: 672px; margin: 0 auto; }
+  .wide { max-width: 1152px; margin: 0 auto; }
+  header.top { text-align: center; margin: 0 auto 40px; max-width: 672px; }
+  header.top h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+  @media (min-width: 640px) { header.top h1 { font-size: 36px; } }
+  header.top p { margin: 12px auto 0; max-width: 576px; font-size: 14px; line-height: 1.6; color: var(--slate-500); }
+  .card { background: #fff; border: 1px solid var(--slate-200); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card-pad { padding: 20px; }
+  label.field-label { font-size: 13px; font-weight: 600; color: var(--slate-800); display: block; }
+  p.hint { font-size: 14px; color: var(--slate-500); margin: 4px 0 0; }
+  input[type="text"], input[type="number"], textarea, select {
+    width: 100%; border: 1px solid var(--slate-300); border-radius: 6px; padding: 8px 12px;
+    font-size: 14px; font-family: inherit; outline: none; background: #fff; color: var(--slate-900);
+  }
+  input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 2px var(--slate-400); }
+  textarea { resize: vertical; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent; padding: 9px 16px; transition: background-color 0.15s;
+  }
+  .btn:disabled { cursor: not-allowed; opacity: 0.5; }
+  .btn-primary { background: var(--slate-900); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--slate-800); }
+  .btn-secondary { background: #fff; border-color: var(--slate-200); color: var(--slate-700); }
+  .btn-secondary:hover { background: var(--slate-50); }
+  .btn-ghost-sm { background: transparent; border: none; padding: 4px; border-radius: 6px; color: var(--slate-400); cursor: pointer; }
+  .btn-ghost-sm:hover:not(:disabled) { background: var(--slate-100); }
+  .btn-ghost-sm:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-ghost-sm.danger-hover:hover:not(:disabled) { color: #ef4444; }
+  .row { display: flex; align-items: center; }
+  .between { justify-content: space-between; }
+  .wrap { flex-wrap: wrap; }
+  .gap-1 { gap: 4px; } .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; }
+  .col { display: flex; flex-direction: column; }
+
+  /* Node editor */
+  .node-editor { border: 1px solid var(--slate-200); border-radius: 8px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .node-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--slate-200); padding: 8px 12px; }
+  .node-editor-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--slate-700); }
+  .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  .node-editor-body { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+  .duration-input { display: flex; gap: 4px; }
+  .duration-input input { flex: 1; min-width: 0; }
+  .duration-input select { width: auto; min-width: 64px; flex: 0 0 auto; }
+  .parts-grid { display: grid; gap: 12px; }
+  .add-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .empty-state { font-size: 14px; color: var(--slate-400); text-align: center; padding: 24px 0; }
+  .generate-note { font-size: 13px; color: var(--slate-400); text-align: center; margin-top: 4px; }
+
+  /* Result */
+  .result-topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .result-card { padding: 20px; }
+  @media (min-width: 640px) { .result-card { padding: 32px; } }
+  .result-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-500); }
+  .result-title { font-size: 24px; font-weight: 600; margin: 4px 0 24px; }
+  @media (min-width: 640px) { .result-title { font-size: 30px; } }
+  .stats-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+  .stat { border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: #fff; }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-500); }
+  .stat-value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .stat-hint { font-size: 12px; color: var(--slate-500); margin-top: 2px; }
+  .bar-track { display: flex; height: 16px; width: 100%; overflow: hidden; border-radius: 999px; border: 1px solid var(--slate-200); background: var(--slate-200); }
+  .bar-fill { height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; font-size: 12px; color: var(--slate-500); margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  .legend-warn { font-weight: 600; color: var(--flag); }
+
+  /* Diagram - vertical */
+  .diagram-wrap { border: 1px solid var(--slate-200); border-radius: 12px; background: #F4F4F6; padding: 24px 16px; margin-top: 24px; }
+  .diagram-vertical { display: flex; flex-direction: column; align-items: center; }
+  .vsm-connector-v { width: 2px; height: 28px; background: #000; flex-shrink: 0; }
+  .vsm-node { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+  .vsm-shape-wrap { display: flex; justify-content: center; align-items: center; position: relative; min-height: 64px; }
+  .vsm-shape-wrap-decision { min-height: 190px; }
+  .vsm-shape { display: flex; align-items: center; justify-content: center; border: 2px solid #000; text-align: center; }
+  .vsm-shape-inner { padding: 8px 16px; }
+  .vsm-shape-name { font-size: 13px; font-weight: 600; line-height: 1.3; display: block; }
+  .vsm-shape-communication { width: 240px; min-height: 56px; border-radius: 999px; }
+  .vsm-shape-step { width: 240px; min-height: 56px; border-radius: 4px; }
+  .vsm-shape-wait { width: 240px; min-height: 56px; border-radius: 4px; transform: skewX(-15deg); }
+  .vsm-shape-wait .vsm-shape-inner { transform: skewX(15deg); }
+  .vsm-shape-decision { width: 130px; height: 130px; transform: rotate(45deg); }
+  .vsm-shape-decision .vsm-shape-inner { transform: rotate(-45deg); max-width: 100px; }
+  .vsm-node-info { text-align: center; max-width: 260px; }
+  .vsm-node-type { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .vsm-node-detail { font-size: 12px; line-height: 1.5; color: var(--slate-500); margin: 4px 0; }
+  .vsm-node-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 12px; color: var(--slate-600); }
+  .vsm-stat-item { display: flex; align-items: center; gap: 4px; }
+  .cost-swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex-shrink: 0; }
+
+  /* Flag */
+  .flag-wrap { position: absolute; top: -10px; right: -10px; z-index: 20; }
+  .flag-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; border: none; cursor: pointer; outline: none; background: var(--flag); box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,0.15); }
+  .flag-popover { position: absolute; right: 0; top: 36px; z-index: 50; width: 256px; border-radius: 8px; border: 1px solid var(--slate-200); background: #fff; padding: 12px; text-align: left; box-shadow: 0 10px 30px rgba(15,23,42,0.18); }
+  .flag-popover-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .flag-badge { border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; background: var(--flag); }
+  .flag-title { font-size: 14px; font-weight: 600; color: var(--slate-900); }
+  .flag-detail { font-size: 12px; line-height: 1.5; color: var(--slate-500); }
+  .flag-suggestion { display: flex; gap: 6px; border-radius: 6px; background: var(--slate-50); padding: 8px; margin-top: 8px; }
+  .flag-suggestion p { font-size: 12px; line-height: 1.5; color: var(--slate-600); }
+
+  @media print {
+    .no-print { display: none !important; }
+    .app { padding: 0; }
+    .result-card { box-shadow: none; border: none; }
+    .diagram-vertical { overflow: visible; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ===== Constants =====
+var NODE_META = {
+  communication: { label: "Customer touchpoint", color: "#70ADFF", foreground: "#000000", valueAdding: true },
+  step: { label: "Step", color: "#FF70E0", foreground: "#000000", valueAdding: true },
+  wait: { label: "Wait time", color: "#FFDF40", foreground: "#000000", valueAdding: false },
+  decision: { label: "Decision", color: "#ffffff", foreground: "#000000", valueAdding: true },
+};
+var FLAG_COLOR = "#d1495b";
+var TRACK_COLOR = "#e2e8f0";
+var COST_META = {
+  low: { label: "Low cost", short: "Low", color: "#94a3b8", rank: 1 },
+  medium: { label: "Medium cost", short: "Medium", color: "#4a7fa5", rank: 2 },
+  high: { label: "High cost", short: "High", color: "#d1495b", rank: 3 },
+};
+var COST_OPTIONS = [
+  { value: "", label: "—" },
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" },
+];
+var NAME_PLACEHOLDER = {
+  communication: "e.g. Customer submits a request",
+  step: "e.g. Review the request",
+  wait: "e.g. Sits in an approval queue",
+  decision: "e.g. Manager approves it?",
+};
+var DETAIL_PLACEHOLDER = {
+  communication: "What does the customer send or receive?",
+  step: "What happens in this step?",
+  wait: "Why does the process pause here?",
+  decision: "What is being decided, and what are the outcomes?",
+};
+var UNITS = [
+  { label: "min", factor: 1 },
+  { label: "hrs", factor: 60 },
+  { label: "days", factor: 60 * 24 },
+];
+var ADD_BUTTONS = [
+  { type: "step", label: "Step" },
+  { type: "wait", label: "Wait time" },
+  { type: "decision", label: "Decision" },
+  { type: "communication", label: "Customer touchpoint" },
+];
+
+// ===== Utils =====
+var idCounter = 0;
+function newId() { idCounter += 1; return "node-" + idCounter; }
+function emptyNode(type) { return { id: newId(), type: type, name: "", detail: "", minutes: 0, people: "", cost: "", unitIndex: 0 }; }
+function guessUnit(minutes) {
+  if (minutes > 0 && minutes % (60 * 24) === 0) return 2;
+  if (minutes > 0 && minutes % 60 === 0) return 1;
+  return 0;
+}
+function makeExampleProcess() {
+  var nodes = [
+    { type: "communication", name: "Customer submits sign-up form", detail: "Customer fills in the online form with their details and requirements.", minutes: 10, people: "Customer", cost: "low" },
+    { type: "step", name: "Sales reviews the request", detail: "A rep checks the form for completeness and logs it in the CRM.", minutes: 20, people: "Sales rep", cost: "medium" },
+    { type: "wait", name: "Sits in approval queue", detail: "Request waits for a manager to pick it up from the shared inbox.", minutes: 960, people: "", cost: "" },
+    { type: "decision", name: "Manager approves the account?", detail: "Manager checks credit and approves or rejects the new account.", minutes: 30, people: "Account manager", cost: "high" },
+    { type: "step", name: "Ops sets up the account", detail: "Provision the account, create logins and configure settings.", minutes: 90, people: "Operations", cost: "medium" },
+    { type: "wait", name: "Waiting on customer to confirm details", detail: "Team emails the customer and waits for a reply before going live.", minutes: 300, people: "Customer", cost: "" },
+    { type: "step", name: "Go live & welcome call", detail: "Account is activated and the customer is walked through the basics.", minutes: 45, people: "Onboarding specialist", cost: "low" },
+    { type: "communication", name: "Customer starts using the product", detail: "Customer receives access and confirmation of a completed setup.", minutes: 5, people: "Customer", cost: "" },
+  ];
+  return {
+    name: "New customer onboarding",
+    nodes: nodes.map(function (n) { return Object.assign({ id: newId(), unitIndex: guessUnit(n.minutes) }, n); }),
+  };
+}
+function round(n) { return Math.round(n * 10) / 10; }
+function formatDuration(minutes) {
+  if (!minutes || minutes <= 0) return "0 min";
+  if (minutes < 60) return round(minutes) + " min";
+  var hours = minutes / 60;
+  if (hours < 48) return round(hours) + " hr";
+  var days = hours / 24;
+  return round(days) + " days";
+}
+function pct(n) { return Math.round(n * 100) + "%"; }
+function escapeHtml(s) { return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function analyzeProcess(process) {
+  var nodes = process.nodes;
+  var waitNodes = nodes.filter(function (n) { return !NODE_META[n.type].valueAdding; });
+  var workNodes = nodes.filter(function (n) { return NODE_META[n.type].valueAdding; });
+  var waitMinutes = waitNodes.reduce(function (s, n) { return s + Math.max(0, n.minutes); }, 0);
+  var processingMinutes = workNodes.reduce(function (s, n) { return s + Math.max(0, n.minutes); }, 0);
+  var totalMinutes = waitMinutes + processingMinutes;
+  var flags = {};
+
+  var maxWait = waitNodes.reduce(function (m, n) { return Math.max(m, n.minutes); }, 0);
+  if (maxWait > 0) {
+    var bottleneck = waitNodes.find(function (n) { return n.minutes === maxWait; });
+    if (bottleneck) {
+      var sWait = waitMinutes > 0 ? maxWait / waitMinutes : 0;
+      var sTotal = totalMinutes > 0 ? maxWait / totalMinutes : 0;
+      flags[bottleneck.id] = {
+        severity: "high", title: "Biggest bottleneck",
+        detail: "This is the longest wait in your process, " + pct(sWait) + " of all the waiting and " + pct(sTotal) + " of the total time (" + formatDuration(maxWait) + ").",
+        suggestion: "Attack this first. Ask why the work stalls here, is it a queue, a hand-off, or waiting on one person? Removing this delay gives the fastest overall speed-up.",
+      };
+    }
+  }
+  for (var i = 0; i < waitNodes.length; i++) {
+    var node = waitNodes[i];
+    if (flags[node.id] || node.minutes <= 0) continue;
+    var sw = waitMinutes > 0 ? node.minutes / waitMinutes : 0;
+    if (sw >= 0.2) {
+      flags[node.id] = {
+        severity: "medium", title: "Notable delay",
+        detail: "This wait accounts for " + pct(sw) + " of your total wait time (" + formatDuration(node.minutes) + ").",
+        suggestion: "Look for a way to shorten or overlap this delay, e.g. do it in parallel with other work, or trigger it earlier.",
+      };
+    }
+  }
+  var maxWork = workNodes.reduce(function (m, n) { return Math.max(m, n.minutes); }, 0);
+  for (var j = 0; j < workNodes.length; j++) {
+    var wn = workNodes[j];
+    if (flags[wn.id] || wn.minutes <= 0 || processingMinutes <= 0) continue;
+    var so = wn.minutes / processingMinutes;
+    if (wn.minutes === maxWork && so >= 0.45 && workNodes.length > 2) {
+      flags[wn.id] = {
+        severity: "medium", title: "Heaviest work step",
+        detail: "This step takes " + pct(so) + " of all the hands-on work time (" + formatDuration(wn.minutes) + ").",
+        suggestion: "This is real work, but it dominates your effort. Consider simplifying, standardizing, or splitting it so it is less of a single point of load.",
+      };
+    }
+  }
+  var namesSeen = {};
+  nodes.forEach(function (n) {
+    var key = (n.name || "").trim().toLowerCase();
+    if (!key) return;
+    if (!namesSeen[key]) namesSeen[key] = [];
+    namesSeen[key].push(n);
+  });
+  Object.keys(namesSeen).forEach(function (key) {
+    var group = namesSeen[key];
+    if (group.length < 2) return;
+    group.forEach(function (node) {
+      if (flags[node.id]) return;
+      flags[node.id] = {
+        severity: "medium", title: "Repeated task",
+        detail: '"' + node.name.trim() + '" appears ' + group.length + " times in this process.",
+        suggestion: "Repeated steps often mean rework, a hand-off looping back, or duplicated effort. Look at why it happens more than once, could it be combined, automated, or done right the first time?",
+      };
+    });
+  });
+  var highCost = nodes.filter(function (n) { return n.cost === "high"; });
+  var hcNote = "This part is marked as one of the highest-cost parts of your process.";
+  highCost.forEach(function (node) {
+    if (flags[node.id]) {
+      flags[node.id].detail = flags[node.id].detail + " " + hcNote;
+    } else {
+      flags[node.id] = {
+        severity: "high", title: "Highest cost", detail: hcNote,
+        suggestion: "Check whether the spend here is justified by the value it adds. Look for ways to reduce, share, or eliminate this cost, especially if it overlaps with waiting or rework.",
+      };
+    }
+  });
+  return {
+    totalMinutes: totalMinutes, processingMinutes: processingMinutes, waitMinutes: waitMinutes,
+    waitPercent: totalMinutes > 0 ? (waitMinutes / totalMinutes) * 100 : 0,
+    processingPercent: totalMinutes > 0 ? (processingMinutes / totalMinutes) * 100 : 0,
+    flags: flags,
+  };
+}
+
+// ===== State =====
+var state = { process: { name: "", nodes: [] }, view: "input", openFlagId: null };
+
+function setState(patch) {
+  Object.keys(patch).forEach(function (k) { state[k] = patch[k]; });
+  render();
+}
+
+// ===== Icon SVG =====
+function icon(name, size, color) {
+  size = size || 16; color = color || "currentColor";
+  var paths = {
+    arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    chevronUp: '<path d="m18 15-6-6-6 6"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    flag: '<path d="M4 3v18"/><path d="M4 4h11l-1.5 3L15 10H4"/>',
+    lightbulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>',
+    pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    printer: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+    users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  };
+  return '<svg class="icon" xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (paths[name] || "") + '</svg>';
+}
+
+// ===== Node Editor =====
+function renderNodeEditor(node, index, total) {
+  var meta = NODE_META[node.type];
+  var isWait = node.type === "wait";
+  var unit = UNITS[node.unitIndex] || UNITS[0];
+  var displayValue = node.minutes === 0 ? "" : String(Math.round((node.minutes / unit.factor) * 100) / 100);
+  var columns = isWait ? 2 : 3;
+  var html = '<div class="node-editor" data-node-id="' + node.id + '">';
+  html += '<div class="node-editor-head"><span class="node-editor-title"><span class="dot" style="background:' + meta.color + '"></span><span style="color:var(--slate-400)">' + (index + 1) + '.</span>' + meta.label + '</span>';
+  html += '<div class="row gap-1">';
+  html += '<button type="button" class="btn-ghost-sm" onclick="moveNode(\'' + node.id + '\',-1)" ' + (index === 0 ? 'disabled' : '') + ' aria-label="Move up">' + icon("chevronUp") + '</button>';
+  html += '<button type="button" class="btn-ghost-sm" onclick="moveNode(\'' + node.id + '\',1)" ' + (index === total - 1 ? 'disabled' : '') + ' aria-label="Move down">' + icon("chevronDown") + '</button>';
+  html += '<button type="button" class="btn-ghost-sm danger-hover" onclick="removeNode(\'' + node.id + '\')" aria-label="Remove">' + icon("trash") + '</button>';
+  html += '</div></div><div class="node-editor-body">';
+  html += '<div class="col gap-1"><label class="field-label" style="font-size:12px">Name</label>';
+  html += '<input type="text" value="' + escapeHtml(node.name) + '" placeholder="' + escapeHtml(NAME_PLACEHOLDER[node.type]) + '" oninput="updateNode(\'' + node.id + '\',{name:this.value})"/></div>';
+  html += '<div class="col gap-1"><label class="field-label" style="font-size:12px">Details</label>';
+  html += '<textarea rows="2" placeholder="' + escapeHtml(DETAIL_PLACEHOLDER[node.type]) + '" oninput="updateNode(\'' + node.id + '\',{detail:this.value})">' + escapeHtml(node.detail) + '</textarea></div>';
+  html += '<div class="parts-grid" style="grid-template-columns:repeat(' + columns + ',minmax(0,1fr))">';
+  html += '<div class="col gap-1"><label class="field-label" style="font-size:12px">' + (isWait ? "How long is the wait?" : "How long does it take?") + '</label>';
+  html += '<div class="duration-input"><input type="number" min="0" inputmode="decimal" placeholder="0" value="' + displayValue + '" oninput="updateDuration(\'' + node.id + '\',this.value)"/>';
+  html += '<select onchange="updateNode(\'' + node.id + '\',{unitIndex:Number(this.value)})">';
+  UNITS.forEach(function (u, i) { html += '<option value="' + i + '"' + (i === node.unitIndex ? " selected" : "") + '>' + u.label + '</option>'; });
+  html += '</select></div></div>';
+  html += '<div class="col gap-1"><label class="field-label" style="font-size:12px">Cost</label>';
+  html += '<select onchange="updateNode(\'' + node.id + '\',{cost:this.value})">';
+  COST_OPTIONS.forEach(function (c) { html += '<option value="' + c.value + '"' + (c.value === node.cost ? " selected" : "") + '>' + escapeHtml(c.label) + '</option>'; });
+  html += '</select></div>';
+  if (!isWait) {
+    html += '<div class="col gap-1"><label class="field-label" style="font-size:12px">' + (node.type === "decision" ? "Who decides?" : "People / roles") + '</label>';
+    html += '<input type="text" value="' + escapeHtml(node.people) + '" placeholder="e.g. Sales rep" oninput="updateNode(\'' + node.id + '\',{people:this.value})"/></div>';
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+// ===== Input Panel =====
+function renderInputPanel() {
+  var p = state.process;
+  var canGenerate = p.name.trim() !== "" && p.nodes.some(function (n) { return n.name.trim() !== ""; });
+  var html = '<div class="narrow col gap-4">';
+  html += '<div class="card card-pad"><div class="row between gap-4" style="align-items:flex-start;margin-bottom:12px">';
+  html += '<label class="field-label" for="process-name">What process are you mapping?</label>';
+  html += '<button type="button" class="btn btn-secondary" style="white-space:nowrap;flex-shrink:0;font-size:12px" onclick="loadExample()">Load example</button></div>';
+  html += '<input type="text" id="process-name" value="' + escapeHtml(p.name) + '" placeholder="e.g. New customer onboarding" oninput="updateProcessName(this.value)"/></div>';
+  html += '<div class="col" style="gap:2px"><h2 style="font-size:14px;font-weight:600;color:var(--slate-800)">Build your process</h2>';
+  html += '<p class="hint">Add each step of the specific process from start to finish. Specify each part as a step, wait time, decision, or customer touchpoint.</p></div>';
+  html += '<div class="col gap-3">';
+  if (p.nodes.length) {
+    p.nodes.forEach(function (node, i) { html += renderNodeEditor(node, i, p.nodes.length); });
+  } else {
+    html += '<p class="empty-state">No parts yet. Add your first step below.</p>';
+  }
+  html += '</div><div class="add-buttons">';
+  ADD_BUTTONS.forEach(function (b) {
+    html += '<button type="button" class="btn btn-secondary" onclick="addNode(\'' + b.type + '\')">' + icon("plus", 16, "var(--slate-500)") + ' ' + b.label + '</button>';
+  });
+  html += '</div>';
+  html += '<button type="button" class="btn btn-primary" style="justify-content:center;padding:12px 20px;margin-top:8px" onclick="handleGenerate()" ' + (canGenerate ? '' : 'disabled') + '>Create Value Stream Map ' + icon("arrowRight") + '</button>';
+  if (!canGenerate) html += '<p class="generate-note">Add a process name and at least one named part to continue.</p>';
+  html += '</div>';
+  return html;
+}
+
+// ===== Node Card (result) =====
+function renderNodeCard(node, flag) {
+  var meta = NODE_META[node.type];
+  var cost = node.cost ? COST_META[node.cost] : null;
+  var borderColor = flag ? FLAG_COLOR : "#000";
+  var html = '<div class="vsm-node">';
+  html += '<div class="vsm-shape-wrap vsm-shape-wrap-' + node.type + '">';
+  if (flag) {
+    html += '<div class="flag-wrap" onmouseenter="setOpenFlag(\'' + node.id + '\')" onmouseleave="setOpenFlag(null)">';
+    html += '<button type="button" class="flag-btn" aria-label="Problem area: ' + escapeHtml(flag.title) + '">' + icon("flag", 14, "#ffffff") + '</button>';
+    if (state.openFlagId === node.id) {
+      html += '<div role="tooltip" class="flag-popover"><div class="flag-popover-head"><span class="flag-badge">' + (flag.severity === "high" ? "Top priority" : "Improve") + '</span><span class="flag-title">' + escapeHtml(flag.title) + '</span></div>';
+      html += '<p class="flag-detail">' + escapeHtml(flag.detail) + '</p>';
+      html += '<div class="flag-suggestion">' + icon("lightbulb", 14, "var(--slate-500)") + '<p>' + escapeHtml(flag.suggestion) + '</p></div></div>';
+    }
+    html += '</div>';
+  }
+  html += '<div class="vsm-shape vsm-shape-' + node.type + '" style="background:' + meta.color + ';border-color:' + borderColor + ';color:' + meta.foreground + '">';
+  html += '<div class="vsm-shape-inner"><span class="vsm-shape-name">' + escapeHtml(node.name || "Untitled") + '</span></div></div></div>';
+  html += '<div class="vsm-node-info"><span class="vsm-node-type">' + meta.label + '</span>';
+  if (node.detail) html += '<p class="vsm-node-detail">' + escapeHtml(node.detail) + '</p>';
+  html += '<div class="vsm-node-stats"><span class="vsm-stat-item">' + icon("clock", 12, "var(--slate-500)") + formatDuration(node.minutes) + '</span>';
+  if (cost) html += '<span class="vsm-stat-item" style="color:' + cost.color + '"><span class="cost-swatch" style="background:' + cost.color + '"></span>' + cost.short + '</span>';
+  if (node.people) html += '<span class="vsm-stat-item">' + icon("users", 12, "var(--slate-500)") + escapeHtml(node.people) + '</span>';
+  html += '</div></div></div>';
+  return html;
+}
+
+// ===== Diagram =====
+function renderDiagram() {
+  var a = analyzeProcess(state.process);
+  var warn = a.waitPercent > a.processingPercent && a.totalMinutes > 0;
+  var html = '<div class="col gap-4">';
+  html += '<div class="stats-grid">';
+  html += '<div class="stat"><p class="stat-label">Total lead time</p><p class="stat-value">' + formatDuration(a.totalMinutes) + '</p><p class="stat-hint">Start to finish</p></div>';
+  html += '<div class="stat"><p class="stat-label">Total work time</p><p class="stat-value" style="color:' + NODE_META.step.color + '">' + formatDuration(a.processingMinutes) + '</p><p class="stat-hint">' + Math.round(a.processingPercent) + '% of the time</p></div>';
+  html += '<div class="stat"><p class="stat-label">Total wait time</p><p class="stat-value" style="color:' + FLAG_COLOR + '">' + formatDuration(a.waitMinutes) + '</p><p class="stat-hint">' + Math.round(a.waitPercent) + '% of the time</p></div>';
+  html += '</div>';
+  html += '<div><div class="bar-track" style="background:' + TRACK_COLOR + '">';
+  html += '<div class="bar-fill" style="width:' + a.processingPercent + '%;background:' + NODE_META.step.color + '"></div>';
+  html += '<div class="bar-fill" style="width:' + a.waitPercent + '%;background:' + NODE_META.wait.color + '"></div></div>';
+  html += '<div class="legend"><span class="legend-item"><span class="legend-dot" style="background:' + NODE_META.step.color + '"></span>Work Time</span>';
+  html += '<span class="legend-item"><span class="legend-dot" style="background:' + NODE_META.wait.color + '"></span>Wait Time</span>';
+  if (warn) html += '<span class="legend-warn">Most of your lead time is spent waiting, not working.</span>';
+  html += '</div></div>';
+  html += '<div class="diagram-wrap"><div class="diagram-vertical">';
+  state.process.nodes.forEach(function (node, i) {
+    html += renderNodeCard(node, a.flags[node.id]);
+    if (i < state.process.nodes.length - 1) html += '<div class="vsm-connector-v"></div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+
+// ===== Result View =====
+function renderResultView() {
+  var html = '<div class="wide col gap-3">';
+  html += '<div class="result-topbar no-print">';
+  html += '<button type="button" class="btn btn-secondary" onclick="setView(\'input\')">' + icon("pencil") + ' Edit details</button>';
+  html += '<button type="button" class="btn btn-primary" onclick="window.print()">' + icon("printer") + ' Print / Save as PDF</button>';
+  html += '</div>';
+  html += '<div class="card result-card"><p class="result-eyebrow">Value Stream Map</p><h1 class="result-title">' + escapeHtml(state.process.name) + '</h1>';
+  html += renderDiagram();
+  html += '</div></div>';
+  return html;
+}
+
+// ===== Main Render =====
+function render() {
+  var heading = state.view === "input" ? "Value Stream Mapping" : "Value Stream Map";
+  var html = '<div class="app">';
+  html += '<header class="top no-print"><h1>' + heading + '</h1><p>A value stream map is a big picture of a process from start to finish, allowing you to identify where time and resources are being wasted, and what steps in the workflow need to be fixed.</p></header>';
+  html += state.view === "input" ? renderInputPanel() : renderResultView();
+  html += '</div>';
+  document.getElementById("root").innerHTML = html;
+}
+
+// ===== Actions =====
+function updateProcessName(v) { state.process.name = v; render(); }
+function updateNode(id, patch) {
+  state.process.nodes = state.process.nodes.map(function (n) { return n.id === id ? Object.assign({}, n, patch) : n; });
+  render();
+}
+function updateDuration(id, val) {
+  var node = state.process.nodes.find(function (n) { return n.id === id; });
+  if (!node) return;
+  var factor = UNITS[node.unitIndex].factor;
+  var v = parseFloat(val);
+  var minutes = isFinite(v) && v > 0 ? v * factor : 0;
+  state.process.nodes = state.process.nodes.map(function (n) { return n.id === id ? Object.assign({}, n, { minutes: minutes }) : n; });
+  render();
+}
+function removeNode(id) {
+  state.process.nodes = state.process.nodes.filter(function (n) { return n.id !== id; });
+  render();
+}
+function moveNode(id, dir) {
+  var nodes = state.process.nodes.slice();
+  var index = nodes.findIndex(function (n) { return n.id === id; });
+  var target = index + dir;
+  if (index < 0 || target < 0 || target >= nodes.length) return;
+  var tmp = nodes[index]; nodes[index] = nodes[target]; nodes[target] = tmp;
+  state.process.nodes = nodes;
+  render();
+}
+function addNode(type) { state.process.nodes = state.process.nodes.concat([emptyNode(type)]); render(); }
+function loadExample() { state.process = makeExampleProcess(); render(); }
+function setView(v) { state.view = v; render(); }
+function setOpenFlag(id) { state.openFlagId = id; render(); }
+function handleGenerate() {
+  var canGenerate = state.process.name.trim() !== "" && state.process.nodes.some(function (n) { return n.name.trim() !== ""; });
+  if (canGenerate) { state.view = "result"; render(); }
+}
+
+// ===== Init =====
+render();
+</script>
+</body>
+</html>
