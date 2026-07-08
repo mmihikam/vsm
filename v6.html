@@ -627,17 +627,17 @@
           <div class="stat">
             <p class="stat-label">Total lead time</p>
             <p class="stat-value">${formatDuration(a.totalMinutes)}</p>
-            <p class="stat-hint">Start to finish — the full time the process takes end-to-end.</p>
+            <p class="stat-hint">The full time the process takes start to finish.</p>
           </div>
           <div class="stat">
             <p class="stat-label">Total work time</p>
             <p class="stat-value" style="color:${NODE_META.step.color}">${formatDuration(a.processingMinutes)}</p>
-            <p class="stat-hint">Hands-on time actively doing the work (${Math.round(a.processingPercent)}% of total).</p>
+            <p class="stat-hint">Time spent on actual work (${Math.round(a.processingPercent)}% of total).</p>
           </div>
           <div class="stat">
             <p class="stat-label">Total wait time</p>
             <p class="stat-value" style="color:${FLAG_COLOR}">${formatDuration(a.waitMinutes)}</p>
-            <p class="stat-hint">Idle time where nothing happens (${Math.round(a.waitPercent)}% of total).</p>
+            <p class="stat-hint">Time spent waiting for something to happen (${Math.round(a.waitPercent)}% of total).</p>
           </div>
         </div>
 
