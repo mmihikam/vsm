@@ -281,19 +281,22 @@
   function emptyNode(type) {
     return { id: newId(), type, name: "", detail: "", minutes: 0, people: "", unitIndex: 0, cost: "", connections: [] };
   }
+  function emptyConnection(targetId) {
+    return { targetId: targetId || "" };
+  }
   function makeExampleProcess() {
     const nodes = [
-      { id: "e1", type: "communication", name: "Customer submits sign-up form", detail: "Customer fills in the online form with their details and requirements.", minutes: 10, people: "Customer", cost: "low", connections: [{ targetId: "e2", label: "" }] },
-      { id: "e2", type: "step", name: "Sales reviews the request", detail: "A rep checks the form for completeness and logs it in the CRM.", minutes: 20, people: "Sales rep", cost: "low", connections: [{ targetId: "e3", label: "" }] },
-      { id: "e3", type: "wait", name: "Sits in approval queue", detail: "Request waits for a manager to pick it up from the shared inbox.", minutes: 960, people: "", cost: "medium", connections: [{ targetId: "e4", label: "" }] },
+      { id: "e1", type: "communication", name: "Customer submits sign-up form", detail: "Customer fills in the online form with their details and requirements.", minutes: 10, people: "Customer", cost: "low", connections: [{ targetId: "e2" }] },
+      { id: "e2", type: "step", name: "Sales reviews the request", detail: "A rep checks the form for completeness and logs it in the CRM.", minutes: 20, people: "Sales rep", cost: "low", connections: [{ targetId: "e3" }] },
+      { id: "e3", type: "wait", name: "Sits in approval queue", detail: "Request waits for a manager to pick it up from the shared inbox.", minutes: 960, people: "", cost: "medium", connections: [{ targetId: "e4" }] },
       { id: "e4", type: "decision", name: "Manager approves the account?", detail: "Manager checks credit and approves or rejects the new account.", minutes: 30, people: "Account manager", cost: "medium", connections: [
-        { targetId: "e5", label: "Approved Path" },
-        { targetId: "e6", label: "Revision Path" }
+        { targetId: "e5" },
+        { targetId: "e6" }
       ] },
-      { id: "e5", type: "step", name: "Ops sets up the account", detail: "Provision the account, create logins and configure settings.", minutes: 90, people: "Operations", cost: "high", connections: [{ targetId: "e7", label: "" }] },
-      { id: "e6", type: "step", name: "Request revisions from customer", detail: "Manager asks the customer to provide more info or correct errors.", minutes: 15, people: "Account manager", cost: "low", connections: [{ targetId: "e2", label: "Loop" }] },
-      { id: "e7", type: "wait", name: "Waiting on customer to confirm details", detail: "Team emails the customer and waits for a reply before going live.", minutes: 300, people: "Customer", cost: "low", connections: [{ targetId: "e8", label: "" }] },
-      { id: "e8", type: "step", name: "Go live & welcome call", detail: "Account is activated and the customer is walked through the basics.", minutes: 45, people: "Onboarding specialist", cost: "medium", connections: [{ targetId: "e9", label: "" }] },
+      { id: "e5", type: "step", name: "Ops sets up the account", detail: "Provision the account, create logins and configure settings.", minutes: 90, people: "Operations", cost: "high", connections: [{ targetId: "e7" }] },
+      { id: "e6", type: "step", name: "Request revisions from customer", detail: "Manager asks the customer to provide more info or correct errors.", minutes: 15, people: "Account manager", cost: "low", connections: [{ targetId: "e2" }] },
+      { id: "e7", type: "wait", name: "Waiting on customer to confirm details", detail: "Team emails the customer and waits for a reply before going live.", minutes: 300, people: "Customer", cost: "low", connections: [{ targetId: "e8" }] },
+      { id: "e8", type: "step", name: "Go live & welcome call", detail: "Account is activated and the customer is walked through the basics.", minutes: 45, people: "Onboarding specialist", cost: "medium", connections: [{ targetId: "e9" }] },
       { id: "e9", type: "communication", name: "Customer starts using the product", detail: "Customer receives access and confirmation of a completed setup.", minutes: 5, people: "Customer", cost: "", connections: [] },
     ];
 
@@ -309,8 +312,7 @@
         id: idMap[n.id],
         unitIndex: guessUnit(n.minutes),
         connections: n.connections.map(c => ({
-          targetId: idMap[c.targetId],
-          label: c.label
+          targetId: idMap[c.targetId]
         }))
       }))
     };
@@ -470,9 +472,6 @@
             <option value="">Select next step…</option>
             ${targetOptions}
           </select>
-          <input type="text" data-action="connection-label" data-node-id="${node.id}" data-connection-index="${ci}"
-            data-focus-key="connection-label:${node.id}:${ci}"
-            value="${escAttr(conn.label)}" placeholder="Label (e.g. Yes)" />
           <button type="button" class="btn-ghost-sm danger-hover" data-action="connection-remove" data-node-id="${node.id}" data-connection-index="${ci}" aria-label="Remove connection">${icon("trash")}</button>
         </div>`;
     }).join("");
@@ -601,7 +600,7 @@
     const cardWidth = 224;
     const cardHeight = 160;
     const hGap = 80;
-    const vGap = 50;
+    const vGap = 80;
     const colWidth = cardWidth + hGap;
     const rowHeight = cardHeight + vGap;
 
@@ -837,7 +836,7 @@
     const svg = document.querySelector('.vsm-svg-overlay');
     if (!container || !svg) return;
 
-    // Expand the SVG boundaries to match full scroll dimensions to prevent clippings
+    // Expand SVG to match full scroll dimensions
     svg.style.width = container.scrollWidth + 'px';
     svg.style.height = container.scrollHeight + 'px';
 
@@ -870,6 +869,37 @@
       };
     });
 
+    // Pre-compute how many forward children each node has, and how many forward parents each node has
+    const forwardChildCount = {};
+    const forwardParentCount = {};
+    const forwardChildIndex = {};  // which index this connection is among parent's forward children
+    const forwardParentIndex = {}; // which index this parent is among child's forward parents
+
+    state.process.nodes.forEach(node => {
+      const coordsA = cardCoords[node.id];
+      if (!coordsA) return;
+      let fwdIdx = 0;
+      (node.connections || []).forEach(conn => {
+        const coordsB = cardCoords[conn.targetId];
+        if (!coordsB) return;
+        if (coordsB.centerX >= coordsA.centerX) {
+          // Forward connection
+          if (!forwardChildCount[node.id]) forwardChildCount[node.id] = 0;
+          forwardChildCount[node.id]++;
+          const key = node.id + ':' + conn.targetId;
+          forwardChildIndex[key] = fwdIdx;
+          fwdIdx++;
+
+          if (!forwardParentCount[conn.targetId]) forwardParentCount[conn.targetId] = 0;
+          const pKey = conn.targetId + ':' + node.id;
+          forwardParentIndex[pKey] = forwardParentCount[conn.targetId];
+          forwardParentCount[conn.targetId]++;
+        }
+      });
+    });
+
+    const pathFragments = [];
+
     state.process.nodes.forEach(node => {
       const coordsA = cardCoords[node.id];
       if (!coordsA) return;
@@ -882,30 +912,48 @@
         const isLoop = coordsB.centerX < coordsA.centerX;
 
         if (!isLoop) {
-          const x1 = coordsA.right;
-          const y1 = coordsA.centerY;
-          const x2 = coordsB.left;
-          const y2 = coordsB.centerY;
-
-          const controlOffset = Math.max(30, (x2 - x1) / 2);
-          const path = `M ${x1} ${y1} C ${x1 + controlOffset} ${y1}, ${x2 - controlOffset} ${y2}, ${x2} ${y2}`;
-
-          svg.innerHTML += `
-            <path d="${path}" fill="none" stroke="var(--slate-400)" stroke-width="2.5" marker-end="url(#arrow)" />
-          `;
-
-          if (conn.label) {
-            const midX = (x1 + x2) / 2;
-            const midY = (y1 + y2) / 2;
-            svg.innerHTML += `
-              <foreignObject x="${midX - 60}" y="${midY - 10}" width="120" height="20">
-                <div style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em; color:var(--slate-600); text-align:center; background:#fff; padding:1px 6px; border-radius:999px; border:1px solid var(--slate-200); display:inline-block; margin:0 auto; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis;">
-                  ${escAttr(conn.label)}
-                </div>
-              </foreignObject>
-            `;
+          // Compute staggered exit Y on source card
+          const numChildren = forwardChildCount[node.id] || 1;
+          const childIdx = forwardChildIndex[node.id + ':' + conn.targetId] || 0;
+          let y1;
+          if (numChildren === 1) {
+            y1 = coordsA.centerY;
+          } else {
+            // Spread exits from 30% to 70% of card height
+            const topY = coordsA.top + coordsA.height * 0.3;
+            const botY = coordsA.top + coordsA.height * 0.7;
+            y1 = topY + (botY - topY) * (childIdx / (numChildren - 1));
           }
+
+          // Compute staggered entry Y on target card
+          const numParents = forwardParentCount[conn.targetId] || 1;
+          const parentIdx = forwardParentIndex[conn.targetId + ':' + node.id] || 0;
+          let y2;
+          if (numParents === 1) {
+            y2 = coordsB.centerY;
+          } else {
+            const topY = coordsB.top + coordsB.height * 0.3;
+            const botY = coordsB.top + coordsB.height * 0.7;
+            y2 = topY + (botY - topY) * (parentIdx / (numParents - 1));
+          }
+
+          const x1 = coordsA.right;
+          const x2 = coordsB.left;
+
+          let path;
+          const sameRow = Math.abs(y1 - y2) < 5;
+          if (sameRow) {
+            // Straight horizontal line
+            path = `M ${x1} ${y1} L ${x2} ${y2}`;
+          } else {
+            // Smooth Bézier curve for branching
+            const controlOffset = Math.max(30, (x2 - x1) * 0.4);
+            path = `M ${x1} ${y1} C ${x1 + controlOffset} ${y1}, ${x2 - controlOffset} ${y2}, ${x2} ${y2}`;
+          }
+
+          pathFragments.push(`<path d="${path}" fill="none" stroke="var(--slate-400)" stroke-width="2" marker-end="url(#arrow)" />`);
         } else {
+          // Loop-back: dashed path going under both cards
           const x1 = coordsA.centerX;
           const y1 = coordsA.bottom;
           const x2 = coordsB.centerX;
@@ -914,24 +962,12 @@
           const offset = 25;
           const path = `M ${x1} ${y1} v ${offset} H ${x2} v ${-offset}`;
 
-          svg.innerHTML += `
-            <path d="${path}" fill="none" stroke="var(--slate-400)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow-loop)" />
-          `;
-
-          if (conn.label) {
-            const midX = (x1 + x2) / 2;
-            const labelY = Math.max(y1, y2) + offset - 8;
-            svg.innerHTML += `
-              <foreignObject x="${midX - 50}" y="${labelY}" width="100" height="20">
-                <div style="font-size:9px; font-weight:600; text-transform:uppercase; color:var(--slate-500); text-align:center; background:#fff; padding:1px 4px; border-radius:3px; border:1px solid var(--slate-200); white-space:nowrap; display:inline-block;">
-                  ${escAttr(conn.label)}
-                </div>
-              </foreignObject>
-            `;
-          }
+          pathFragments.push(`<path d="${path}" fill="none" stroke="var(--slate-400)" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow-loop)" />`);
         }
       });
     });
+
+    svg.innerHTML += pathFragments.join('\n');
   }
 
   function renderDiagram(process) {
@@ -1093,7 +1129,7 @@
     if (nodes.length > 0) {
       const lastNode = nodes[nodes.length - 1];
       if (lastNode.connections.length === 0) {
-        lastNode.connections.push({ targetId: newNode.id, label: "" });
+        lastNode.connections.push({ targetId: newNode.id });
       }
     }
     nodes.push(newNode);
@@ -1138,15 +1174,7 @@
       return;
     }
 
-    if (action === "connection-label") {
-      const node = findNode(nodeId);
-      const ci = parseInt(t.dataset.connectionIndex);
-      if (node && node.connections && node.connections[ci]) {
-        node.connections[ci].label = t.value;
-        render();
-      }
-      return;
-    }
+
   });
 
   root.addEventListener("change", (e) => {
@@ -1215,7 +1243,7 @@
         const node = findNode(nodeId);
         if (node) {
           if (!node.connections) node.connections = [];
-          node.connections.push({ targetId: "", label: "" });
+          node.connections.push({ targetId: "" });
           render();
         }
         break;
