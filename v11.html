@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Value Stream Mapping</title>
+<style>
+  :root {
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+    --flag: #d1495b;
+    --step: #2f6690;
+    --wait: #cdd9e3;
+    --wait-fg: #3b4a59;
+    --decision: #4a7fa5;
+    --comm: #1b4965;
+    --cost-high: #d1495b;
+    --cost-medium: #c08552;
+    --cost-low: #5a8a5a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--slate-100);
+    color: var(--slate-900);
+  }
+  .app { min-height: 100vh; padding: 40px 16px; }
+  @media (min-width: 1024px) { .app { padding: 56px 24px; } }
+
+  .narrow { max-width: 672px; margin: 0 auto; }
+  .wide { max-width: 1152px; margin: 0 auto; }
+
+  header.top { text-align: center; margin: 0 auto 40px; max-width: 672px; }
+  header.top h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+  @media (min-width: 640px) { header.top h1 { font-size: 36px; } }
+  header.top p { margin: 12px auto 0; max-width: 576px; font-size: 14px; line-height: 1.6; color: var(--slate-500); }
+
+  .card { background: #fff; border: 1px solid var(--slate-200); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card-pad { padding: 20px; }
+
+  label.field-label { font-size: 13px; font-weight: 600; color: var(--slate-800); display: block; }
+  p.hint { font-size: 14px; color: var(--slate-500); margin: 4px 0 0; }
+
+  input[type="text"], input[type="number"], textarea, select {
+    width: 100%;
+    border: 1px solid var(--slate-300);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    background: #fff;
+    color: var(--slate-900);
+  }
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+    box-shadow: 0 0 0 2px var(--slate-400);
+  }
+  textarea { resize: vertical; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border-radius: 6px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent; padding: 9px 16px;
+    transition: background-color 0.15s;
+  }
+  .btn:disabled { cursor: not-allowed; opacity: 0.5; }
+  .btn-primary { background: var(--slate-900); color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .btn-primary:hover:not(:disabled) { background: var(--slate-800); }
+  .btn-secondary { background: #fff; border-color: var(--slate-200); color: var(--slate-700); }
+  .btn-secondary:hover { background: var(--slate-50); }
+  .btn-ghost-sm { background: transparent; border: none; padding: 4px; border-radius: 6px; color: var(--slate-400); cursor: pointer; }
+  .btn-ghost-sm:hover:not(:disabled) { background: var(--slate-100); }
+  .btn-ghost-sm:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-ghost-sm.danger-hover:hover:not(:disabled) { color: #ef4444; }
+
+  .row { display: flex; align-items: center; }
+  .between { justify-content: space-between; }
+  .wrap { flex-wrap: wrap; }
+  .gap-1 { gap: 4px; }
+  .gap-2 { gap: 8px; }
+  .gap-3 { gap: 12px; }
+  .gap-4 { gap: 16px; }
+  .col { display: flex; flex-direction: column; }
+
+  .node-editor { border: 1px solid var(--slate-200); border-radius: 8px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .node-editor-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--slate-200); padding: 8px 12px; }
+  .node-editor-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--slate-800); }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 999px; flex-shrink: 0; }
+  .node-editor-body { display: grid; gap: 12px; padding: 12px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .duration-input { display: flex; align-items: stretch; overflow: hidden; border-radius: 6px; border: 1px solid var(--slate-300); background: #fff; }
+  .duration-input:focus-within { box-shadow: 0 0 0 2px var(--slate-400); }
+  .duration-input input { border: none; flex: 1; min-width: 0; box-shadow: none !important; }
+  .duration-input select { border: none; border-left: 1px solid var(--slate-300); border-radius: 0; background: var(--slate-50); color: var(--slate-600); width: auto; cursor: pointer; }
+
+  .add-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .empty-state { border: 1px dashed var(--slate-300); border-radius: 8px; background: var(--slate-50); padding: 32px 16px; text-align: center; font-size: 14px; color: var(--slate-500); }
+
+  .generate-note { text-align: center; font-size: 12px; color: var(--slate-500); margin-top: -8px; }
+
+  /* Result view */
+  .result-topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+  .result-card { border-radius: 16px; padding: 24px; }
+  @media (min-width: 640px) { .result-card { padding: 32px; } }
+  .result-eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-500); margin: 0; }
+  .result-title { font-size: 24px; font-weight: 600; margin: 4px 0 24px; }
+  @media (min-width: 640px) { .result-title { font-size: 30px; } }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+  @media (min-width: 640px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+  .stat { border: 1px solid var(--slate-200); border-radius: 8px; padding: 16px; background: #fff; }
+  .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--slate-500); margin: 0; }
+  .stat-value { font-size: 22px; font-weight: 600; margin: 4px 0 0; }
+  .stat-hint { font-size: 12px; color: var(--slate-500); margin: 2px 0 0; }
+
+  .bar-track { display: flex; height: 16px; width: 100%; overflow: hidden; border-radius: 999px; border: 1px solid var(--slate-200); background: var(--slate-200); }
+  .bar-fill { height: 100%; }
+  .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; font-size: 12px; color: var(--slate-500); margin-top: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; }
+  .legend-warn { font-weight: 600; color: var(--flag); }
+
+  .diagram-wrap { border: 1px solid var(--slate-200); border-radius: 12px; background: rgba(248,250,252,0.6); padding: 16px; margin-top: 24px; }
+  .diagram-scroll { display: flex; align-items: flex-start; gap: 8px; overflow-x: auto; padding: 16px 4px 12px; }
+  .flow-pair { display: flex; align-items: stretch; gap: 8px; }
+  .connector { display: flex; flex-shrink: 0; align-items: center; align-self: center; padding-top: 24px; color: var(--slate-400); }
+
+  .node-card { position: relative; width: 224px; flex-shrink: 0; }
+  .node-card-inner { overflow: hidden; border-radius: 8px; border: 1px solid var(--slate-200); background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+  .node-card-inner.dashed { border-style: dashed; }
+  .node-card-header { padding: 6px 12px; text-align: center; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .node-card-body { min-height: 120px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .node-card-name { font-size: 14px; font-weight: 600; line-height: 1.35; margin: 0; color: var(--slate-900); }
+  .node-card-name.placeholder { color: var(--slate-400); font-weight: 500; }
+  .node-card-detail { font-size: 12px; line-height: 1.5; color: var(--slate-500); margin: 0; }
+  .node-card-footer { display: grid; gap: 4px; border-top: 1px solid var(--slate-200); background: var(--slate-50); padding: 8px 12px; font-size: 12px; }
+  .footer-row { display: flex; align-items: center; gap: 6px; color: var(--slate-700); }
+  .footer-row .val { font-weight: 500; }
+  .footer-row .muted { color: var(--slate-500); }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Flag */
+  .flag-wrap { position: absolute; top: -10px; right: -10px; z-index: 20; padding-bottom: 8px; }
+  .flag-btn { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; border: none; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.15); outline: none; background: var(--flag); box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,0.15); }
+  .flag-popover { position: absolute; right: 0; top: 36px; z-index: 50; width: 256px; border-radius: 8px; border: 1px solid var(--slate-200); background: #fff; padding: 12px; text-align: left; box-shadow: 0 10px 30px rgba(15,23,42,0.18); display: none; }
+  .flag-wrap:hover .flag-popover { display: block; }
+  .flag-popover-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .flag-badge { border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; background: var(--flag); }
+  .flag-title { font-size: 14px; font-weight: 600; color: var(--slate-900); }
+  .flag-detail { font-size: 12px; line-height: 1.5; color: var(--slate-500); margin: 0; }
+  .flag-suggestion { display: flex; gap: 6px; border-radius: 6px; background: var(--slate-50); padding: 8px; margin-top: 8px; }
+  .flag-suggestion p { font-size: 12px; line-height: 1.5; color: var(--slate-600); margin: 0; }
+  .flag-suggestion svg { flex-shrink: 0; margin-top: 1px; }
+
+  /* Modal Overlay Styling */
+  .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-container { background: #fff; border: 1px solid var(--slate-200); border-radius: 12px; max-width: 540px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); display: flex; flex-direction: column; }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--slate-200); }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--slate-900); margin: 0; }
+  .modal-body { padding: 20px; font-size: 14px; line-height: 1.6; color: var(--slate-700); overflow-y: auto; }
+  .modal-section { margin-bottom: 20px; }
+  .modal-section:last-child { margin-bottom: 0; }
+  .modal-section-title { font-size: 14px; font-weight: 600; color: var(--slate-900); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .modal-body p { margin: 0 0 8px; }
+  .modal-body p:last-child { margin-bottom: 0; }
+
+  svg.icon { display: block; }
+
+  @media print {
+    body { background: #fff; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .no-print { display: none !important; }
+    .app { padding: 0; }
+    .result-card { box-shadow: none; border: none; }
+    .diagram-scroll { overflow-x: visible; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------------------------------------------------------- */
+  /* Icons (small inline SVGs, lucide-style)                          */
+  /* ---------------------------------------------------------------- */
+  const ICON_PATHS = {
+    arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    chevronUp: '<path d="m18 15-6-6-6 6"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
+    chevronRight: '<path d="m9 18 6-6-6-6"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    flag: '<path d="M4 3v18"/><path d="M4 4h11l-1.5 3L15 10H4"/>',
+    lightbulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>',
+    pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+    plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    printer: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+    trash: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+    users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  };
+  function icon(name, opts) {
+    opts = opts || {};
+    const size = opts.size || 16;
+    const color = opts.color || "currentColor";
+    const cls = opts.cls ? ` class="${opts.cls}"` : "";
+    return `<svg${cls} class="icon" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]}</svg>`;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Domain model                                                     */
+  /* ---------------------------------------------------------------- */
+  const NODE_META = {
+    communication: { label: "Customer touchpoint", color: "#1b4965", foreground: "#ffffff", valueAdding: true },
+    step: { label: "Step", color: "#2f6690", foreground: "#ffffff", valueAdding: true },
+    wait: { label: "Wait time", color: "#cdd9e3", foreground: "#3b4a59", valueAdding: false },
+    decision: { label: "Decision", color: "#4a7fa5", foreground: "#ffffff", valueAdding: true },
+  };
+  const FLAG_COLOR = "#d1495b";
+  const TRACK_COLOR = "#e2e8f0";
+
+  const COST_RANK = { high: 3, medium: 2, low: 1 };
+  const COST_OPTIONS = [
+    { value: "", label: "—" },
+    { value: "low", label: "Low" },
+    { value: "medium", label: "Medium" },
+    { value: "high", label: "High" },
+  ];
+  const COST_LABELS = { high: "High cost", medium: "Medium cost", low: "Low cost" };
+  const COST_COLORS = { high: "var(--cost-high)", medium: "var(--cost-medium)", low: "var(--cost-low)" };
+
+  const NAME_PLACEHOLDER = {
+    communication: "e.g. Customer submits a request",
+    step: "e.g. Review the request",
+    wait: "e.g. Sits in an approval queue",
+    decision: "e.g. Manager approves it?",
+  };
+  const DETAIL_PLACEHOLDER = {
+    communication: "What does the customer send or receive?",
+    step: "What happens in this step?",
+    wait: "Why does the process pause here?",
+    decision: "What is being decided, and what are the outcomes?",
+  };
+
+  const UNITS = [
+    { label: "min", factor: 1 },
+    { label: "hrs", factor: 60 },
+    { label: "days", factor: 60 * 24 },
+  ];
+  function guessUnit(minutes) {
+    if (minutes > 0 && minutes % (60 * 24) === 0) return 2;
+    if (minutes > 0 && minutes % 60 === 0) return 1;
+    return 0;
+  }
+
+  let idCounter = 0;
+  function newId() {
+    idCounter += 1;
+    return "node-" + idCounter;
+  }
+  function emptyNode(type) {
+    return { id: newId(), type, name: "", detail: "", minutes: 0, people: "", unitIndex: 0, cost: "" };
+  }
+  function makeExampleProcess() {
+    const nodes = [
+      { type: "communication", name: "Customer submits sign-up form", detail: "Customer fills in the online form with their details and requirements.", minutes: 10, people: "Customer", cost: "low" },
+      { type: "step", name: "Sales reviews the request", detail: "A rep checks the form for completeness and logs it in the CRM.", minutes: 20, people: "Sales rep", cost: "low" },
+      { type: "wait", name: "Sits in approval queue", detail: "Request waits for a manager to pick it up from the shared inbox.", minutes: 960, people: "", cost: "medium" },
+      { type: "decision", name: "Manager approves the account?", detail: "Manager checks credit and approves or rejects the new account.", minutes: 30, people: "Account manager", cost: "medium" },
+      { type: "step", name: "Ops sets up the account", detail: "Provision the account, create logins and configure settings.", minutes: 90, people: "Operations", cost: "high" },
+      { type: "wait", name: "Waiting on customer to confirm details", detail: "Team emails the customer and waits for a reply before going live.", minutes: 300, people: "Customer", cost: "low" },
+      { type: "step", name: "Go live & welcome call", detail: "Account is activated and the customer is walked through the basics.", minutes: 45, people: "Onboarding specialist", cost: "medium" },
+      { type: "communication", name: "Customer starts using the product", detail: "Customer receives access and confirmation of a completed setup.", minutes: 5, people: "Customer", cost: "" },
+    ];
+    return {
+      name: "New customer onboarding",
+      nodes: nodes.map((n) => ({ id: newId(), unitIndex: guessUnit(n.minutes), ...n })),
+    };
+  }
+
+  function round(n) {
+    return Math.round(n * 10) / 10;
+  }
+  function formatDuration(minutes) {
+    if (!minutes || minutes <= 0) return "0 min";
+    if (minutes < 60) return round(minutes) + " min";
+    const hours = minutes / 60;
+    if (hours < 48) return round(hours) + " hr";
+    const days = hours / 24;
+    return round(days) + " days";
+  }
+  function pct(n) {
+    return Math.round(n * 100) + "%";
+  }
+
+  /**
+   * Automatically flags problem areas based purely on what the user entered.
+   * "Value adding" comes from NODE_META so a single source of truth decides
+   * what counts as waste, instead of hardcoding node.type checks in two places.
+   *
+   * Five kinds of flags are raised, in priority order (a node only ever
+   * shows one flag, the highest-priority one it qualifies for):
+   * 1. Biggest bottleneck  - the single longest wait in the process.
+   * 2. Highest cost        - the single most expensive part of the process.
+   * 3. Notable delay       - any other wait that's a large share of total wait.
+   * 4. Heaviest work step  - a single work step that dominates work time.
+   * 5. Repeated task       - a step/task name that appears more than once.
+   */
+  function analyzeProcess(process) {
+    const nodes = process.nodes;
+    const waitNodes = nodes.filter((n) => !NODE_META[n.type].valueAdding);
+    const workNodes = nodes.filter((n) => NODE_META[n.type].valueAdding);
+
+    const waitMinutes = waitNodes.reduce((sum, n) => sum + Math.max(0, n.minutes), 0);
+    const processingMinutes = workNodes.reduce((sum, n) => sum + Math.max(0, n.minutes), 0);
+    const totalMinutes = waitMinutes + processingMinutes;
+
+    const flags = {};
+
+    const maxWait = waitNodes.reduce((max, n) => Math.max(max, n.minutes), 0);
+    if (maxWait > 0) {
+      const bottleneckNode = waitNodes.find((n) => n.minutes === maxWait);
+      if (bottleneckNode) {
+        const shareOfWait = waitMinutes > 0 ? maxWait / waitMinutes : 0;
+        const shareOfTotal = totalMinutes > 0 ? maxWait / totalMinutes : 0;
+        flags[bottleneckNode.id] = {
+          severity: "high",
+          title: "Biggest bottleneck",
+          detail: "This is the longest wait in your process, " + pct(shareOfWait) + " of all the waiting and " + pct(shareOfTotal) + " of the total time (" + formatDuration(maxWait) + ").",
+          suggestion: "Attack this first. Ask why the work stalls here, is it a queue, a hand-off, or waiting on one person? Removing this delay gives the fastest overall speed-up.",
+        };
+      }
+    }
+
+    const maxCostRank = nodes.reduce((max, n) => Math.max(max, COST_RANK[n.cost] || 0), 0);
+    if (maxCostRank > 0) {
+      const costNode = nodes.find((n) => (COST_RANK[n.cost] || 0) === maxCostRank);
+      if (costNode && !flags[costNode.id]) {
+        const costLabel = COST_LABELS[costNode.cost];
+        flags[costNode.id] = {
+          severity: "high",
+          title: "Highest cost",
+          detail: "This is the most expensive part of your process (" + costLabel.toLowerCase() + ").",
+          suggestion: "Focus cost-reduction effort here. Can you automate it, outsource it, negotiate pricing, or split it into cheaper parts?",
+        };
+      }
+    }
+
+    for (const node of waitNodes) {
+      if (flags[node.id]) continue;
+      if (node.minutes <= 0) continue;
+      const shareOfWait = waitMinutes > 0 ? node.minutes / waitMinutes : 0;
+      if (shareOfWait >= 0.2) {
+        flags[node.id] = {
+          severity: "medium",
+          title: "Notable delay",
+          detail: "This wait accounts for " + pct(shareOfWait) + " of your total wait time (" + formatDuration(node.minutes) + ").",
+          suggestion: "Look for a way to shorten or overlap this delay, e.g. do it in parallel with other work, or trigger it earlier.",
+        };
+      }
+    }
+
+    const maxWork = workNodes.reduce((max, n) => Math.max(max, n.minutes), 0);
+    for (const node of workNodes) {
+      if (flags[node.id]) continue;
+      if (node.minutes <= 0 || processingMinutes <= 0) continue;
+      const shareOfWork = node.minutes / processingMinutes;
+      if (node.minutes === maxWork && shareOfWork >= 0.45 && workNodes.length > 2) {
+        flags[node.id] = {
+          severity: "medium",
+          title: "Heaviest work step",
+          detail: "This step takes " + pct(shareOfWork) + " of all the hands-on work time (" + formatDuration(node.minutes) + ").",
+          suggestion: "This is real work, but it dominates your effort. Consider simplifying, standardizing, or splitting it so it is less of a single point of load.",
+        };
+      }
+    }
+
+    const namesSeen = new Map();
+    for (const node of nodes) {
+      const key = node.name.trim().toLowerCase();
+      if (!key) continue;
+      if (!namesSeen.has(key)) namesSeen.set(key, []);
+      namesSeen.get(key).push(node);
+    }
+    for (const group of namesSeen.values()) {
+      if (group.length < 2) continue;
+      for (const node of group) {
+        if (flags[node.id]) continue;
+        flags[node.id] = {
+          severity: "medium",
+          title: "Repeated task",
+          detail: '"' + node.name.trim() + '" appears ' + group.length + " times in this process.",
+          suggestion: "Repeated steps often mean rework, a hand-off looping back, or duplicated effort. Look at why it happens more than once, could it be combined, automated, or done right the first time?",
+        };
+      }
+    }
+
+    return {
+      totalMinutes,
+      processingMinutes,
+      waitMinutes,
+      waitPercent: totalMinutes > 0 ? (waitMinutes / totalMinutes) * 100 : 0,
+      processingPercent: totalMinutes > 0 ? (processingMinutes / totalMinutes) * 100 : 0,
+      flags,
+    };
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* State                                                            */
+  /* ---------------------------------------------------------------- */
+  const state = {
+    process: { name: "", nodes: [] },
+    view: "input", // "input" | "result"
+    showHelpModal: false,
+  };
+
+  function escAttr(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Render: Input side                                               */
+  /* ---------------------------------------------------------------- */
+  const ADD_BUTTONS = [
+    { type: "step", label: "Step" },
+    { type: "wait", label: "Wait time" },
+    { type: "decision", label: "Decision" },
+    { type: "communication", label: "Customer touchpoint" },
+  ];
+
+  function renderNodeEditor(node, index, total) {
+    const meta = NODE_META[node.type];
+    const isWait = node.type === "wait";
+    const unit = UNITS[node.unitIndex] || UNITS[0];
+    const displayValue = node.minutes === 0 ? "" : String(Math.round((node.minutes / unit.factor) * 100) / 100);
+
+    return `
+      <div class="node-editor">
+        <div class="node-editor-head">
+          <span class="node-editor-title">
+            <span class="dot" style="background:${meta.color}"></span>
+            <span style="color:var(--slate-400)">${index + 1}.</span>
+            ${meta.label}
+          </span>
+          <div class="row gap-1">
+            <button type="button" class="btn-ghost-sm" data-action="node-move-up" data-node-id="${node.id}" ${index === 0 ? "disabled" : ""} aria-label="Move up">${icon("chevronUp")}</button>
+            <button type="button" class="btn-ghost-sm" data-action="node-move-down" data-node-id="${node.id}" ${index === total - 1 ? "disabled" : ""} aria-label="Move down">${icon("chevronDown")}</button>
+            <button type="button" class="btn-ghost-sm danger-hover" data-action="node-remove" data-node-id="${node.id}" aria-label="Remove">${icon("trash")}</button>
+          </div>
+        </div>
+        <div class="node-editor-body">
+          <div class="col gap-1">
+            <label class="field-label" style="font-size:12px">Name</label>
+            <input type="text" data-action="node-name" data-node-id="${node.id}" data-focus-key="node-name:${node.id}"
+              value="${escAttr(node.name)}" placeholder="${escAttr(NAME_PLACEHOLDER[node.type])}" />
+          </div>
+          <div class="col gap-1">
+            <label class="field-label" style="font-size:12px">Details</label>
+            <textarea rows="2" data-action="node-detail" data-node-id="${node.id}" data-focus-key="node-detail:${node.id}"
+              placeholder="${escAttr(DETAIL_PLACEHOLDER[node.type])}">${escAttr(node.detail)}</textarea>
+          </div>
+          <div class="two-col">
+            <div class="col gap-1">
+              <label class="field-label" style="font-size:12px">${isWait ? "How long is the wait?" : "How long does it take?"}</label>
+              <div class="duration-input">
+                <input type="number" min="0" inputmode="decimal" placeholder="0"
+                  data-action="node-minutes" data-node-id="${node.id}" data-focus-key="node-minutes:${node.id}"
+                  value="${escAttr(displayValue)}" aria-label="Duration" />
+                <select data-action="node-unit" data-node-id="${node.id}" data-focus-key="node-unit:${node.id}" aria-label="Time unit">
+                  ${UNITS.map((u, i) => `<option value="${i}" ${i === node.unitIndex ? "selected" : ""}>${u.label}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+            ${
+              !isWait
+                ? `<div class="col gap-1">
+                    <label class="field-label" style="font-size:12px">${node.type === "decision" ? "Who decides?" : "People / roles"}</label>
+                    <input type="text" data-action="node-people" data-node-id="${node.id}" data-focus-key="node-people:${node.id}"
+                      value="${escAttr(node.people)}" placeholder="e.g. Sales rep" />
+                  </div>`
+                : ""
+            }
+          </div>
+          <div class="col gap-1">
+            <label class="field-label" style="font-size:12px">Cost</label>
+            <select data-action="node-cost" data-node-id="${node.id}" data-focus-key="node-cost:${node.id}" aria-label="Cost">
+              ${COST_OPTIONS.map((o) => `<option value="${o.value}" ${o.value === (node.cost || "") ? "selected" : ""}>${o.label}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderInputPanel() {
+    const process = state.process;
+    const canGenerate = process.name.trim() !== "" && process.nodes.some((n) => n.name.trim() !== "");
+
+    return `
+      <div class="narrow col gap-4">
+        <div class="card card-pad">
+          <div class="row between gap-4" style="align-items:flex-start;margin-bottom:16px">
+            <div class="col gap-1">
+              <label class="field-label" for="process-name">Process name</label>
+              <p class="hint">Name the specific process you want to map.</p>
+            </div>
+            <div class="row gap-2" style="flex-shrink:0">
+              <button type="button" class="btn btn-secondary" style="padding:6px 12px; min-width:34px; justify-content:center" data-action="open-help">?</button>
+              <button type="button" class="btn btn-secondary" style="padding:6px 12px" data-action="clear-all">Clear</button>
+              <button type="button" class="btn btn-secondary" style="padding:6px 12px" data-action="load-example">Load example</button>
+            </div>
+          </div>
+          <input type="text" id="process-name" data-action="process-name" data-focus-key="process-name"
+            value="${escAttr(process.name)}" placeholder="e.g. New customer onboarding" />
+        </div>
+
+        <div class="col" style="gap:2px">
+          <h2 style="font-size:14px;font-weight:600;color:var(--slate-800);margin:0">Build your process</h2>
+          <p class="hint">Add each step of the specific process from start to finish. Specify each part as a step, wait time, decision, or customer touchpoint.</p>
+        </div>
+
+        <div class="col gap-3">
+          ${
+            process.nodes.length
+              ? process.nodes.map((node, i) => renderNodeEditor(node, i, process.nodes.length)).join("")
+              : `<p class="empty-state">No parts yet. Add your first step below.</p>`
+          }
+        </div>
+
+        <div class="add-buttons">
+          ${ADD_BUTTONS.map(
+            ({ type, label }) => `
+            <button type="button" class="btn btn-secondary" data-action="add-node" data-node-type="${type}">
+              ${icon("plus", { color: "var(--slate-500)" })} ${label}
+            </button>`
+          ).join("")}
+        </div>
+
+        <button type="button" class="btn btn-primary" style="justify-content:center;padding:12px 20px;margin-top:8px"
+          data-action="generate" ${canGenerate ? "" : "disabled"}>
+          Create Value Stream Map ${icon("arrowRight")}
+        </button>
+        ${!canGenerate ? `<p class="generate-note">Add a process name and at least one named part to continue.</p>` : ""}
+      </div>`;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Render: Result side                                              */
+  /* ---------------------------------------------------------------- */
+  function renderFlagPopover(node, flag) {
+    if (!flag) return "";
+    return `
+      <div class="flag-wrap" data-node-id="${node.id}">
+        <button type="button" class="flag-btn"
+          aria-label="Problem area: ${escAttr(flag.title)}. ${escAttr(flag.detail)}">
+          ${icon("flag", { size: 14, color: "#ffffff" })}
+        </button>
+        <div role="tooltip" class="flag-popover">
+          <div class="flag-popover-head">
+            <span class="flag-badge">${flag.severity === "high" ? "Top priority" : "Improve"}</span>
+            <span class="flag-title">${escAttr(flag.title)}</span>
+          </div>
+          <p class="flag-detail">${escAttr(flag.detail)}</p>
+          <div class="flag-suggestion">
+            ${icon("lightbulb", { size: 14, color: "var(--slate-500)" })}
+            <p>${escAttr(flag.suggestion)}</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderNodeCard(node, flag) {
+    const meta = NODE_META[node.type];
+    const isWait = node.type === "wait";
+    const borderColor = flag ? FLAG_COLOR : "var(--slate-200)";
+
+    return `
+      <div class="node-card">
+        ${renderFlagPopover(node, flag)}
+        <div class="node-card-inner ${isWait ? "dashed" : ""}" style="border-color:${borderColor}">
+          <div class="node-card-header" style="background:${meta.color};color:${meta.foreground}">${meta.label}</div>
+          <div class="node-card-body">
+            <p class="node-card-name ${node.name ? "" : "placeholder"}">${node.name ? escAttr(node.name) : "Untitled"}</p>
+            ${node.detail ? `<p class="node-card-detail">${escAttr(node.detail)}</p>` : ""}
+          </div>
+          <div class="node-card-footer">
+            <div class="footer-row">
+              ${icon("clock", { size: 14, color: meta.color })}
+              <span class="val">${formatDuration(node.minutes)}</span>
+              <span class="muted">${isWait ? "waiting" : "of work"}</span>
+            </div>
+            ${
+              !isWait && node.people
+                ? `<div class="footer-row">${icon("users", { size: 14, color: meta.color })}<span class="truncate">${escAttr(node.people)}</span></div>`
+                : ""
+            }
+            ${
+              node.cost
+                ? `<div class="footer-row"><span class="dot" style="width:8px;height:8px;background:${COST_COLORS[node.cost]}"></span><span class="val" style="color:${COST_COLORS[node.cost]}">${COST_LABELS[node.cost]}</span></div>`
+                : ""
+            }
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderDiagram(process) {
+    const a = analyzeProcess(process);
+
+    let flowHtml = "";
+    process.nodes.forEach((node, i) => {
+      flowHtml += `<div class="flow-pair">`;
+      flowHtml += renderNodeCard(node, a.flags[node.id]);
+      if (i < process.nodes.length - 1) {
+        flowHtml += `<div class="connector">${icon("chevronRight", { size: 24, color: "var(--slate-400)" })}</div>`;
+      }
+      flowHtml += `</div>`;
+    });
+
+    const warn =
+      a.waitPercent > a.processingPercent && a.totalMinutes > 0
+        ? `<span class="legend-warn">Most of your lead time is spent waiting, not working.</span>`
+        : "";
+
+    return `
+      <div class="col gap-4">
+        <div class="stats-grid">
+          <div class="stat">
+            <p class="stat-label">Total lead time</p>
+            <p class="stat-value">${formatDuration(a.totalMinutes)}</p>
+            <p class="stat-hint">The full time the process takes start to finish.</p>
+          </div>
+          <div class="stat">
+            <p class="stat-label">Total work time</p>
+            <p class="stat-value" style="color:${NODE_META.step.color}">${formatDuration(a.processingMinutes)}</p>
+            <p class="stat-hint">Time spent on actual work (${Math.round(a.processingPercent)}% of total).</p>
+          </div>
+          <div class="stat">
+            <p class="stat-label">Total wait time</p>
+            <p class="stat-value" style="color:${FLAG_COLOR}">${formatDuration(a.waitMinutes)}</p>
+            <p class="stat-hint">Time spent waiting for something to happen (${Math.round(a.waitPercent)}% of total).</p>
+          </div>
+        </div>
+
+        <div>
+          <div class="bar-track" style="background:${TRACK_COLOR}">
+            <div class="bar-fill" style="width:${a.processingPercent}%;background:${NODE_META.step.color}"></div>
+            <div class="bar-fill" style="width:${a.waitPercent}%;background:${NODE_META.wait.color}"></div>
+          </div>
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot" style="background:${NODE_META.step.color}"></span>Work Time</span>
+            <span class="legend-item"><span class="legend-dot" style="background:${NODE_META.wait.color}"></span>Wait Time</span>
+            ${warn}
+          </div>
+        </div>
+
+        <div class="diagram-wrap">
+          <div class="diagram-scroll">${flowHtml}</div>
+        </div>
+      </div>`;
+  }
+
+  function renderResultView() {
+    const process = state.process;
+    return `
+      <div class="wide col gap-3">
+        <div class="result-topbar no-print">
+          <div class="row gap-2">
+            <button type="button" class="btn btn-secondary" data-action="edit">${icon("pencil")} Edit details</button>
+            <button type="button" class="btn btn-secondary" style="padding:6px 12px; min-width:34px; justify-content:center" data-action="open-help">?</button>
+          </div>
+          <button type="button" class="btn btn-primary" data-action="print">${icon("printer")} Print / Save as PDF</button>
+        </div>
+        <div class="card result-card">
+          <p class="result-eyebrow">Value Stream Map</p>
+          <h1 class="result-title">${escAttr(process.name)}</h1>
+          ${renderDiagram(process)}
+        </div>
+      </div>`;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Render Help Modal overlay                                       */
+  /* ---------------------------------------------------------------- */
+  function renderHelpModal() {
+    if (!state.showHelpModal) return "";
+    return `
+      <div class="modal-overlay" data-action="close-help">
+        <div class="modal-container" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <h3 class="modal-title">Help Guide</h3>
+          </div>
+          <div class="modal-body">
+            <div class="modal-section">
+              <h4 class="modal-section-title">How to use</h4>
+              <p>Begin by naming the specific process you want to analyze with a Value Stream Map. Add each part of the workflow as a step, wait time, decision, or customer touchpoint, and fill in their respective details.</p>
+              <p>If your process includes loops or branches, enter them as separate steps with the same name and details. Once all elements have been added click "Create Value Stream Map". The generated map will visualize your entire process from start to finish.</p>
+            </div>
+            <div class="modal-section">
+              <h4 class="modal-section-title">Flagging</h4>
+              <p>Five kinds of flags are raised, in priority order (a step only ever shows one flag, the highest-priority one it qualifies for):</p>
+              <p>1. Biggest bottleneck  - the single longest wait in the process.</p>
+              <p>2. Highest cost        - the single most expensive part of the process.</p>
+              <p>3. Notable delay       - any other wait that's a large share of total wait.</p>
+              <p>4. Heaviest work step  - a single work step that dominates work time.</p>
+              <p>5. Repeated task       - a step/task name that appears more than once.</p>
+            </div>
+            <div class="modal-section">
+              <h4 class="modal-section-title">Printing</h4>
+              <p>To print or save as pdf, click Print/Save as PDF. Choose landscape orientation, and change scale under more settings to fit on page as desired.</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Render root                                                      */
+  /* ---------------------------------------------------------------- */
+  const root = document.getElementById("root");
+
+  function saveFocus() {
+    const el = document.activeElement;
+    if (!el || !root.contains(el) || !el.dataset || !el.dataset.focusKey) return null;
+    const out = { key: el.dataset.focusKey };
+    if (typeof el.selectionStart === "number") {
+      out.start = el.selectionStart;
+      out.end = el.selectionEnd;
+    }
+    return out;
+  }
+
+  function restoreFocus(saved) {
+    if (!saved) return;
+    const el = root.querySelector('[data-focus-key="' + CSS.escape(saved.key) + '"]');
+    if (!el) return;
+    el.focus();
+    if (saved.start != null && typeof el.setSelectionRange === "function") {
+      try {
+        el.setSelectionRange(saved.start, saved.end);
+      } catch (e) {
+        /* some input types (e.g. number) don't support selection ranges */
+      }
+    }
+  }
+
+  function render() {
+    const saved = saveFocus();
+
+    const headingText = state.view === "input" ? "Value Stream Mapping" : "Value Stream Map";
+    root.innerHTML = `
+      <div class="app">
+        <header class="top no-print">
+          <h1>${headingText}</h1>
+          <p>A value stream map is a big picture of a process from start to finish, allowing you to identify where time and resources are being wasted, and what steps in the workflow need to be fixed.</p>
+        </header>
+        ${state.view === "input" ? renderInputPanel() : renderResultView()}
+        ${renderHelpModal()}
+      </div>`;
+
+    restoreFocus(saved);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Mutations                                                        */
+  /* ---------------------------------------------------------------- */
+  function findNode(id) {
+    return state.process.nodes.find((n) => n.id === id);
+  }
+  function updateNode(id, patch) {
+    const n = findNode(id);
+    if (n) Object.assign(n, patch);
+  }
+  function removeNode(id) {
+    state.process.nodes = state.process.nodes.filter((n) => n.id !== id);
+  }
+  function moveNode(id, dir) {
+    const nodes = state.process.nodes;
+    const index = nodes.findIndex((n) => n.id === id);
+    const target = index + dir;
+    if (index < 0 || target < 0 || target >= nodes.length) return;
+    const tmp = nodes[index];
+    nodes[index] = nodes[target];
+    nodes[target] = tmp;
+  }
+  function addNode(type) {
+    state.process.nodes.push(emptyNode(type));
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Events (delegated)                                               */
+  /* ---------------------------------------------------------------- */
+  root.addEventListener("input", (e) => {
+    const t = e.target;
+    const action = t.dataset.action;
+    if (!action) return;
+    const nodeId = t.dataset.nodeId;
+
+    if (action === "process-name") {
+      state.process.name = t.value;
+      render();
+      return;
+    }
+    if (action === "node-name") {
+      updateNode(nodeId, { name: t.value });
+      render();
+      return;
+    }
+    if (action === "node-detail") {
+      updateNode(nodeId, { detail: t.value });
+      render();
+      return;
+    }
+    if (action === "node-people") {
+      updateNode(nodeId, { people: t.value });
+      render();
+      return;
+    }
+    if (action === "node-minutes") {
+      const node = findNode(nodeId);
+      if (!node) return;
+      const factor = UNITS[node.unitIndex].factor;
+      const v = parseFloat(t.value);
+      updateNode(nodeId, { minutes: Number.isFinite(v) && v > 0 ? v * factor : 0 });
+      render();
+      return;
+    }
+  });
+
+  root.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset.action === "node-unit") {
+      updateNode(t.dataset.nodeId, { unitIndex: Number(t.value) });
+      render();
+    }
+    if (t.dataset.action === "node-cost") {
+      updateNode(t.dataset.nodeId, { cost: t.value });
+      render();
+    }
+  });
+
+  root.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const nodeId = btn.dataset.nodeId;
+
+    switch (action) {
+      case "clear-all":
+        state.process = { name: "", nodes: [] };
+        render();
+        break;
+      case "open-help":
+        state.showHelpModal = true;
+        render();
+        break;
+      case "close-help":
+        state.showHelpModal = false;
+        render();
+        break;
+      case "load-example":
+        state.process = makeExampleProcess();
+        render();
+        break;
+      case "node-move-up":
+        moveNode(nodeId, -1);
+        render();
+        break;
+      case "node-move-down":
+        moveNode(nodeId, 1);
+        render();
+        break;
+      case "node-remove":
+        removeNode(nodeId);
+        render();
+        break;
+      case "add-node":
+        addNode(btn.dataset.nodeType);
+        render();
+        break;
+      case "generate": {
+        const canGenerate = state.process.name.trim() !== "" && state.process.nodes.some((n) => n.name.trim() !== "");
+        if (canGenerate) {
+          state.view = "result";
+          render();
+        }
+        break;
+      }
+      case "edit":
+        state.view = "input";
+        render();
+        break;
+      case "print":
+        window.print();
+        break;
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
