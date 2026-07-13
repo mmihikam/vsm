@@ -27,54 +27,30 @@
     --cost-low: #5a8a5a;
   }
   * { box-sizing: border-box; }
-  
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--slate-100);
     color: var(--slate-900);
-    position: relative;
-    min-height: 100vh;
-  }
 
-  /* Left Logo Layer (Solid Opacity) */
-  body::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: url('https://raw.githubusercontent.com/mmihikam/vsm/refs/heads/main/Activera-Consulting-Logo.png');
-    background-position: 20px 20px;
-    background-repeat: no-repeat;
-    background-attachment: scroll;
-    /* Dynamically shrinks with window width (capped at 150px) */
-    background-size: min(18vw, 150px) auto;
-    opacity: 1.0; 
+    /* Dual Background Images Configurations */
+    background-image: 
+      url('https://raw.githubusercontent.com/mmihikam/vsm/refs/heads/main/Activera-Consulting-Logo.png'), 
+      url('https://raw.githubusercontent.com/mmihikam/vsm/refs/heads/main/Activera-Consulting-Icon.png');
+    
+    /* Position images 20px offset from their corners */
+    background-position: 
+      20px 20px, 
+      calc(100% - 20px) 0px;
+    
+    background-repeat: no-repeat, no-repeat;
+    
+    /* Set to scroll so they stay at the top of the document layout and don't chase the scroll viewport */
+    background-attachment: scroll, scroll;
+    
+    /* Left image 65px width, Right image 80px width (height self-adjusts safely to avoid stretching) */
+    background-size: 150px auto, 300px auto;
   }
-
-  /* Right Icon Layer (Adjustable Opacity & Removed Top Padding) */
-  body::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: url('https://raw.githubusercontent.com/mmihikam/vsm/refs/heads/main/Activera-Consulting-Icon.png');
-    background-position: calc(100% - 20px) 0px; /* 0px top offset */
-    background-repeat: no-repeat;
-    background-attachment: scroll;
-    /* Dynamically shrinks with window width (capped at 300px) */
-    background-size: min(27vw, 300px) auto;
-    opacity: 0.4; /* Adjusted Transparency (0.0 is invisible, 1.0 is solid) */
-  }
-
   .app { min-height: 100vh; padding: 40px 16px; }
   @media (min-width: 1024px) { .app { padding: 56px 24px; } }
 
@@ -277,10 +253,10 @@
 
   const COST_RANK = { high: 3, medium: 2, low: 1 };
   const COST_OPTIONS = [
-    { value: "", label: "—" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", label: "None" },
+    { value: "low", label: "Low (< $1000)" },
+    { value: "medium", label: "Medium ($1000 - $5000)" },
+    { value: "high", label: "High (> $5000)" },
   ];
   const COST_LABELS = { high: "High cost", medium: "Medium cost", low: "Low cost" };
   const COST_COLORS = { high: "var(--cost-high)", medium: "var(--cost-medium)", low: "var(--cost-low)" };
