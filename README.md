@@ -10,4 +10,5 @@ Code can be found in index.html
 IMPORTANT: To avoid accidental changes create a copy of the html file before making any changes.
 
 Language: HTML
+
 Summary of code (context to give AI tools before prompting):
