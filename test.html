@@ -35,8 +35,8 @@
 
     /* Dual Background Images Configurations */
     background-image: 
-      url('https://raw.githubusercontent.com/mmihikam/vsm/refs/heads/main/Activera-Consulting-Logo.png'), 
-      url('https://raw.githubusercontent.com/mmihikam/vsm/refs/heads/main/Activera-Consulting-Icon.png');
+      url('PASTE_YOUR_LEFT_IMAGE_RAW_URL_HERE'), 
+      url('PASTE_YOUR_RIGHT_IMAGE_RAW_URL_HERE');
     
     /* Position images 20px offset from their corners */
     background-position: 
@@ -44,10 +44,12 @@
       calc(100% - 20px) 20px;
     
     background-repeat: no-repeat, no-repeat;
-    background-attachment: fixed, fixed;
     
-    /* Forces dimensions down to 45px width */
-    background-size: 60px auto, 80px auto;
+    /* Set to scroll so they stay at the top of the document layout and don't chase the scroll viewport */
+    background-attachment: scroll, scroll;
+    
+    /* Left image 65px width, Right image 80px width (height self-adjusts safely to avoid stretching) */
+    background-size: 65px auto, 80px auto;
   }
   .app { min-height: 100vh; padding: 40px 16px; }
   @media (min-width: 1024px) { .app { padding: 56px 24px; } }
