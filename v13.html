@@ -308,19 +308,6 @@
     return Math.round(n * 100) + "%";
   }
 
-  /**
-   * Automatically flags problem areas based purely on what the user entered.
-   * "Value adding" comes from NODE_META so a single source of truth decides
-   * what counts as waste, instead of hardcoding node.type checks in two places.
-   *
-   * Five kinds of flags are raised, in priority order (a node only ever
-   * shows one flag, the highest-priority one it qualifies for):
-   * 1. Biggest bottleneck  - the single longest wait in the process.
-   * 2. Highest cost        - the single most expensive part of the process.
-   * 3. Notable delay       - any other wait that's a large share of total wait.
-   * 4. Heaviest work step  - a single work step that dominates work time.
-   * 5. Repeated task       - a step/task name that appears more than once.
-   */
   function analyzeProcess(process) {
     const nodes = process.nodes;
     const waitNodes = nodes.filter((n) => !NODE_META[n.type].valueAdding);
@@ -425,7 +412,7 @@
   /* ---------------------------------------------------------------- */
   const state = {
     process: { name: "", nodes: [] },
-    view: "input", // "input" | "result"
+    view: "input",
     showHelpModal: false,
   };
 
@@ -483,7 +470,7 @@
             <div class="col gap-1">
               <label class="field-label" style="font-size:12px">${isWait ? "How long is the wait?" : "How long does it take?"}</label>
               <div class="duration-input">
-                <input type="number" min="0" inputmode="decimal" placeholder="0"
+                <input type="text" min="0" inputmode="decimal" placeholder="0"
                   data-action="node-minutes" data-node-id="${node.id}" data-focus-key="node-minutes:${node.id}"
                   value="${escAttr(displayValue)}" aria-label="Duration" />
                 <select data-action="node-unit" data-node-id="${node.id}" data-focus-key="node-unit:${node.id}" aria-label="Time unit">
@@ -758,7 +745,7 @@
       try {
         el.setSelectionRange(saved.start, saved.end);
       } catch (e) {
-        /* some input types (e.g. number) don't support selection ranges */
+        /* Safe Fallback */
       }
     }
   }
