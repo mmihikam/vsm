@@ -235,10 +235,10 @@
 
   const COST_RANK = { high: 3, medium: 2, low: 1 };
   const COST_OPTIONS = [
-    { value: "", label: "—" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", label: "None" },
+    { value: "low", label: "Low (< $1000)" },
+    { value: "medium", label: "Medium ($1000 - $5000)" },
+    { value: "high", label: "High (> $5000)" },
   ];
   const COST_LABELS = { high: "High cost", medium: "Medium cost", low: "Low cost" };
   const COST_COLORS = { high: "var(--cost-high)", medium: "var(--cost-medium)", low: "var(--cost-low)" };
