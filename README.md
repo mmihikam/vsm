@@ -1,6 +1,6 @@
 # Value Stream Mapping (VSM) Tool
 ## About:
-**To access this tool, paste the following link in a web browser: https://mmihikam.github.io/vsm/**
+**Access this tool here: https://mmihikam.github.io/vsm/**
 
 This tool lets the user map out a workflow or business process by inputting a sequence of steps, wait times, decisions, and customer touchpoints and instantly generates an interactive visual timeline and metric dashboard. The tool helps users analyze a process to pinpoint exactly where time, effort, or resources are being wasted, and which specific workflows require optimization.
 
