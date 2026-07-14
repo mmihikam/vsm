@@ -82,11 +82,11 @@ What gets flagged as a problem area in order of priority:
 - **Branding Elements:** Utilizes absolute CSS pseudo-elements (body::before and body::after) to inject background iconography smoothly via raw GitHub CDN paths.
 ### Suggested AI prompt template for changes
 > This project is a self-contained, client-side Value Stream Mapping (VSM) tool built using standard HTML, CSS, and vanilla JavaScript. Please adhere strictly to the following guardrails and architectural principles when modifying the codebase:
-
+>
 > Maintain the single-file architecture, keeping all logic, CSS styles, variables, typography, and GitHub CDN branding pseudo-elements intact. Preserve the core state management (state.process) and virtual rendering sync logic without using inline events or scattered event listeners; all user actions must run through high-performance event delegation bound via data-action hooks on the centralized #root wrapper. Any newly injected interactive controls must include proper data-focus-key attributes to avoid breaking real-time cursor tracking during reactive UI updates, and non-report assets should carry the .no-print helper class to ensure executive-ready @media print layouts remain crisp and professional.
-
+>
 > Implement the following updates within these parameters:
-
+>
 > [Describe specific changes here]
 
 ---
