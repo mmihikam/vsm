@@ -35,10 +35,10 @@ This tool is designed for operational diagnostics, process engineering, and lean
 **2.** In the "Process name" field, enter the specific title of the workflow you want to map.
 
 **3.** Build the Sequence. Click any of the four template buttons at the bottom to add a new component to your process.
-- Step: Hands-on operational work.
-- Wait time: Delays, queues, or idle holding periods.
-- Decision: Strategic pivot points or approval checkpoints.
-- Customer touchpoint: Direct communications or hand-offs sent to/received from a client.
+   - Step: Hands-on operational work.
+   - Wait time: Delays, queues, or idle holding periods.
+   - Decision: Strategic pivot points or approval checkpoints.
+   - Customer touchpoint: Direct communications or hand-offs sent to/received from a client.
   
 **4.** Fill out Component Attributes as you go.
 - Name & Details: Provide a concise title and description for the step.
