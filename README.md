@@ -31,19 +31,25 @@ This tool is designed for operational diagnostics, process engineering, and lean
 
 ## How to use this tool
 **1.** Open the interface (https://mmihikam.github.io/vsm/) in any web browser.
+
 **2.** In the "Process name" field, enter the specific title of the workflow you want to map.
+
 **3.** Build the Sequence. Click any of the four template buttons at the bottom to add a new component to your process.
 [] Step: Hands-on operational work.
 - Wait time: Delays, queues, or idle holding periods.
 - Decision: Strategic pivot points or approval checkpoints.
 - Customer touchpoint: Direct communications or hand-offs sent to/received from a client.
+  
 **4.** Fill out Component Attributes as you go.
 - Name & Details: Provide a concise title and description for the step.
 - Duration: Enter the average time it takes.
 - People/Roles: Specify the people involved in the step.
 - Cost: Select the average cost of the step.
+  
 **5.** Click "Create Value Stream Map"
+
 **6.** View results by scrolling horizontally to see map and hovering over flags to see problem areas.
+
 **7.** Export by clicking "Print/Save as PDF" and changing settings as desired.
 
 ### Additional Elements:
