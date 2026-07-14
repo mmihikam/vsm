@@ -1,7 +1,13 @@
 # Value Stream Mapping (VSM) Tool
-## About:
 **Access this tool here: https://mmihikam.github.io/vsm/**
-
+## Table of Contents
+1. [About](#About)
+2. [What is Value Stream Mapping](#What-is-Value-Stream-Mapping)
+3. [What this tool is used for](#What-this-tool-is-used-for)
+4. [How to use this tool](#How-to-use-this-tool)
+5. [Modification Guide](#Modification-Guide)
+   
+## About:
 This tool lets the user map out a workflow or business process by inputting a sequence of steps, wait times, decisions, and customer touchpoints and instantly generates an interactive visual timeline and metric dashboard. The tool helps users analyze a process to pinpoint exactly where time, effort, or resources are being wasted, and which specific workflows require optimization.
 
 It runs client-side on the chosen web browser using standard HTML, CSS, and vanilla JavaScript. 
@@ -41,13 +47,13 @@ This tool is designed for operational diagnostics, process engineering, and lean
 7. Export by clicking "Print/Save as PDF" and changing settings as desired.
 
 ### Additional Elements:
-- Question mark: Additional guidance.
-- Clear: Clear all entries.
-- Load Example: Load a sample process.
-- Trash Can: Remove an unwanted entry.
-- Up/Down Arrows: Reorder a step.
-- Edit Details: Return to input section and edit steps.
-- Flags: Hover over a flag to read its cause.
+- **Question mark:** Additional guidance.
+- **Clear:** Clear all entries.
+- **Load Example:** Load a sample process.
+- **Trash Can:** Remove an unwanted entry.
+- **Up/Down Arrows:** Reorder a step.
+- **Edit Details:** Return to input section and edit steps.
+- **Flags:** Hover over a flag to read its cause.
 
 **Flagging** 
 
