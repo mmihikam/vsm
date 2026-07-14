@@ -90,4 +90,4 @@ What gets flagged as a problem area in order of priority:
 > [Describe specific changes here]
 
 ---
-<small> Built by Mihika Mukherjee </small>
+###### Built by Mihika Mukherjee
