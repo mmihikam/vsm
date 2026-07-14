@@ -75,7 +75,10 @@ What gets flagged as a problem area in order of priority:
 ## Modification Guide
 **IMPORTANT: To avoid accidental alterations create a copy of the html file before making any changes.**
 ### Project Construction
-**Code is located in index.html.** The self contained layout includes:
+**Code is located in index.html.** 
+To see the code, open index.html in a code editor (e.g. VS Code)
+
+The self contained layout includes:
 - **CSS Configurations:** Built with embedded theme variables (:root), full responsive layout classes, flexbox grid structures, and native web @media print rules.
 - **UI Rendering Framework:** Built with vanilla JavaScript using dynamic ES6 template literals. It manages screen swaps (input view vs. result view) and saves user cursor focus properties smoothly between state updates.
 - **Analytical Logic Engine:** Governs the duration unit calculations, standardizes time metrics to minutes, and runs the conditional loops that output the targeted priority flags.
@@ -89,5 +92,18 @@ What gets flagged as a problem area in order of priority:
 >
 > [Describe specific changes here]
 
+### Publishing Changes
+To publish changes:
+1. Create a Github account
+2. Create a new repository
+3. Create a new file, paste the new code in
+4. Name the new file "index.html"
+5. Copy/paste this readme into your repository's readme
+6. Go to repository settings
+7. Click pages
+8. Publish the repository as a page
+9. The new page will have the changes, use the new link from now on.
+10. Replace the old link with the new one (e.g. in sharepoint, in the readme)
+Note: Once a repository is created, the index file can be edited by the owner and the page will automatically update. A new repository only needs to be created if access is not granted to the current one, and changes need to be published.
 ---
 ###### Built by Mihika Mukherjee
