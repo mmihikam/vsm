@@ -82,17 +82,8 @@ What gets flagged as a problem area in order of priority:
 - **Branding Elements:** Utilizes absolute CSS pseudo-elements (body::before and body::after) to inject background iconography smoothly via raw GitHub CDN paths.
 ### Suggested AI prompt template for changes
 This project is a self-contained, client-side Value Stream Mapping (VSM) tool built using standard HTML, CSS, and vanilla JavaScript. Please adhere strictly to the following guardrails and architectural principles when modifying the codebase:
-1. CODE FORMAT & ARCHITECTURE:
-- Maintain the single-file architecture. Do not split the code into separate external files or break out the logic.
-- Preserve the existing state management object structure (`state.process`) and virtual rendering synchronization logic.
-2. VISUAL THEME & LAYOUTS:
-- Do not modify, remove, or alter any CSS styles, variables, typography, padding scales, or structural color codes unless explicitly asked to do so. 
-- Ensure that the CSS absolute pseudo-elements (`body::before` and `body::after`) pointing to branding assets on the GitHub CDN remain untouched.
-3. PRINT FUNCTIONALITY:
-- Ensure any added fields, temporary state indicators, or interactive configurations are properly tagged with the `.no-print` helper class if they are not meant to appear on final PDF or physical report exports. 
-- Do not break the current `@media print` layouts that optimize the flow of the results dashboard view.
-4. EVEN DELEGATION & RE-RENDERING:
-- The app relies strictly on high-performance event delegation. All actions and input listeners are bound directly to the centralized `#root` wrapper using `data-action` hooks. 
-- Do not switch to inline event attributes (like onclick/oninput) or manual `addEventListener` attachments scattered through the DOM string literals. Maintain the centralized state management and reactive trigger flow.
+
+CODE FORMAT & ARCHITECTURE: Maintain the single-file architecture. Do not split the code into separate external files or break out the logic. Preserve the existing state management object structure (`state.process`) and virtual rendering synchronization logic. VISUAL THEME & LAYOUTS: Do not modify, remove, or alter any CSS styles, variables, typography, padding scales, or structural color codes unless explicitly asked to do so. Ensure that the CSS absolute pseudo-elements (`body::before` and `body::after`) pointing to branding assets on the GitHub CDN remain untouched. PRINT FUNCTIONALITY: Ensure any added fields, temporary state indicators, or interactive configurations are properly tagged with the `.no-print` helper class if they are not meant to appear on final PDF or physical report exports. Do not break the current `@media print` layouts that optimize the flow of the results dashboard view. EVEN DELEGATION & RE-RENDERING: The app relies strictly on high-performance event delegation. All actions and input listeners are bound directly to the centralized `#root` wrapper using `data-action` hooks. Do not switch to inline event attributes (like onclick/oninput) or manual `addEventListener` attachments scattered through the DOM string literals. Maintain the centralized state management and reactive trigger flow.
+
 Implement the following updates within these parameters:
 [Describe specific changes here]
