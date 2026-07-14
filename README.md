@@ -105,6 +105,7 @@ To publish changes:
 9. The new page will have the changes, use the new link from now on.
 10. Replace the old link with the new one (e.g. in sharepoint, in the readme)
 
-Note: Once a repository is created, the index file can be edited by the owner and the page will automatically update. A new repository only needs to be created if access is not granted to the current one, and changes need to be published.
+*Note: Once a repository is created, the index file can be edited by the owner and the page will automatically update. A new repository only needs to be created if access is not granted to the current one, and changes need to be published.*
+
 ---
 ###### Built by Mihika Mukherjee
