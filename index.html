@@ -271,6 +271,8 @@
     step: { label: "Step", color: "#2f6690", foreground: "#ffffff", valueAdding: true },
     wait: { label: "Wait time", color: "#cdd9e3", foreground: "#3b4a59", valueAdding: false },
     decision: { label: "Decision", color: "#4a7fa5", foreground: "#ffffff", valueAdding: true },
+    external_vendor: { label: "External Vendor", color: "#64748b", foreground: "#ffffff", valueAdding: true },
+    handoff: { label: "Interdepartmental Handoff", color: "#475569", foreground: "#ffffff", valueAdding: false },
   };
   const FLAG_COLOR = "#d1495b";
   const TRACK_COLOR = "#e2e8f0";
@@ -290,12 +292,16 @@
     step: "e.g. Review the request",
     wait: "e.g. Sits in an approval queue",
     decision: "e.g. Manager approves it?",
+    external_vendor: "e.g. Background check processing",
+    handoff: "e.g. Move files from Sales to Ops",
   };
   const DETAIL_PLACEHOLDER = {
     communication: "What does the customer send or receive?",
     step: "What happens in this step?",
     wait: "Why does the workflow pause here?",
     decision: "What is being decided, and what are the outcomes?",
+    external_vendor: "What is the vendor delivering or processing?",
+    handoff: "Which departments are involved and how?",
   };
 
   const UNITS = [
@@ -392,7 +398,19 @@
       }
     }
 
-    // 2. High Cost Rule
+    // 2. External Vendor High Cost Rule
+    for (const node of nodes) {
+      if (node.type === "external_vendor" && node.cost === "high") {
+        flags[node.id] = {
+          severity: "high",
+          title: "High vendor cost",
+          detail: "This external vendor process is configured with high financial costs.",
+          suggestion: "Review service level agreements (SLAs), explore alternative vendor options, or analyze whether this workflow step can be handled more cost-effectively in-house.",
+        };
+      }
+    }
+
+    // 3. High Cost Rule
     const maxCostRank = nodes.reduce((max, n) => Math.max(max, COST_RANK[n.cost] || 0), 0);
     if (maxCostRank > 0) {
       const costNode = nodes.find((n) => (COST_RANK[n.cost] || 0) === maxCostRank);
@@ -407,7 +425,7 @@
       }
     }
 
-    // 3. Notable Delay Rule
+    // 4. Notable Delay Rule
     for (const node of waitNodes) {
       if (flags[node.id]) continue;
       if (node.minutes <= 0) continue;
@@ -422,7 +440,7 @@
       }
     }
 
-    // 4. Heaviest Work Step Rule
+    // 5. Heaviest Work Step Rule
     const maxWork = workNodes.reduce((max, n) => Math.max(max, n.minutes), 0);
     for (const node of workNodes) {
       if (flags[node.id]) continue;
@@ -438,7 +456,7 @@
       }
     }
 
-    // 5. Repeated Task Name Loop Rule
+    // 6. Repeated Task Name Loop Rule
     const namesSeen = new Map();
     for (const node of nodes) {
       const key = node.name.trim().toLowerCase();
@@ -496,6 +514,8 @@
     { type: "wait", label: "Wait time" },
     { type: "decision", label: "Decision" },
     { type: "communication", label: "Customer touchpoint" },
+    { type: "external_vendor", label: "External Vendor" },
+    { type: "handoff", label: "Interdepartmental Handoff" },
   ];
 
   // Outputs card templates dynamically for each step form item in the list builder
@@ -587,7 +607,7 @@
 
         <div class="col" style="gap:2px">
           <h2 style="font-size:14px;font-weight:600;color:var(--slate-800);margin:0">Build your workflow</h2>
-          <p class="hint">Add each step of the specific workflow from start to finish. Specify each part as a step, wait time, decision, or customer touchpoint.</p>
+          <p class="hint">Add each step of the specific workflow from start to finish. Specify each part as a step, wait time, decision, customer touchpoint, external vendor, or interdepartmental handoff.</p>
         </div>
 
         <div class="col gap-3">
@@ -764,17 +784,18 @@
           <div class="modal-body">
             <div class="modal-section">
               <h4 class="modal-section-title">How to use</h4>
-              <p>Begin by naming the specific workflow you want to analyze with a Value Stream Map. Add each part of the workflow as a step, wait time, decision, or customer touchpoint, and fill in their respective details.</p>
+              <p>Begin by naming the specific workflow you want to analyze with a Value Stream Map. Add each part of the workflow as a step, wait time, decision, customer touchpoint, external vendor, or interdepartmental handoff, and fill in their respective details.</p>
               <p>If your workflow includes loops or branches, enter them as separate steps with the same name and details. Once all elements have been added click "Create Value Stream Map". The generated map will visualize your entire workflow from start to finish.</p>
             </div>
             <div class="modal-section">
               <h4 class="modal-section-title">Flagging</h4>
-              <p>Five kinds of flags are raised, in priority order (a step only ever shows one flag, the highest-priority one it qualifies for):</p>
+              <p>Six kinds of flags are raised, in priority order (a step only ever shows one flag, the highest-priority one it qualifies for):</p>
               <p>1. Biggest bottleneck  - the single longest wait in the workflow.</p>
-              <p>2. Highest cost        - the single most expensive part of the workflow.</p>
-              <p>3. Notable delay       - any other wait that's a large share of total wait.</p>
-              <p>4. Heaviest work step  - a single work step that dominates work time.</p>
-              <p>5. Repeated task       - a step/task name that appears more than once.</p>
+              <p>2. High vendor cost    - an external vendor step with high cost.</p>
+              <p>3. Highest cost        - the single most expensive part of the workflow.</p>
+              <p>4. Notable delay       - any other wait that's a large share of total wait.</p>
+              <p>5. Heaviest work step  - a single work step that dominates work time.</p>
+              <p>6. Repeated task       - a step/task name that appears more than once.</p>
             </div>
             <div class="modal-section">
               <h4 class="modal-section-title">Printing</h4>
