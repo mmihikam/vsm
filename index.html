@@ -696,7 +696,7 @@
               </div>
               ${
                 !isWait && node.people
-                  ? `<div class="footer-row">${icon("users", { size: 14, color: meta.color })}<span class="truncate">${escAttr(node.people)}</span></div>`
+                  ? `<div class="footer-row">${icon("users", { size: 14, color: meta.color })}<span>${escAttr(node.people)}</span></div>`
                   : ""
               }
               ${
