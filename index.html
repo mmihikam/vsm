@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Value Stream Mapping</title>
+<title>AI Value Stream Map Tool</title>
 <style>
   :root {
     --slate-50: #f8fafc;
@@ -294,7 +294,7 @@
   const DETAIL_PLACEHOLDER = {
     communication: "What does the customer send or receive?",
     step: "What happens in this step?",
-    wait: "Why does the process pause here?",
+    wait: "Why does the workflow pause here?",
     decision: "What is being decided, and what are the outcomes?",
   };
 
@@ -386,7 +386,7 @@
         flags[bottleneckNode.id] = {
           severity: "high",
           title: "Biggest bottleneck",
-          detail: "This is the longest wait in your process, " + pct(shareOfWait) + " of all the waiting and " + pct(shareOfTotal) + " of the total time (" + formatDuration(maxWait) + ").",
+          detail: "This is the longest wait in your workflow, " + pct(shareOfWait) + " of all the waiting and " + pct(shareOfTotal) + " of the total time (" + formatDuration(maxWait) + ").",
           suggestion: "Attack this first. Ask why the work stalls here, is it a queue, a hand-off, or waiting on one person? Removing this delay gives the fastest overall speed-up.",
         };
       }
@@ -401,7 +401,7 @@
         flags[costNode.id] = {
           severity: "high",
           title: "Highest cost",
-          detail: "This is the most expensive part of your process (" + costLabel.toLowerCase() + ").",
+          detail: "This is the most expensive part of your workflow (" + costLabel.toLowerCase() + ").",
           suggestion: "Focus cost-reduction effort here. Can you automate it, outsource it, negotiate pricing, or split it into cheaper parts?",
         };
       }
@@ -453,7 +453,7 @@
         flags[node.id] = {
           severity: "medium",
           title: "Repeated task",
-          detail: '"' + node.name.trim() + '" appears ' + group.length + " times in this process.",
+          detail: '"' + node.name.trim() + '" appears ' + group.length + " times in this workflow.",
           suggestion: "Repeated steps often mean rework, a hand-off looping back, or duplicated effort. Look at why it happens more than once, could it be combined, automated, or done right the first time?",
         };
       }
@@ -572,8 +572,8 @@
         <div class="card card-pad">
           <div class="row between gap-4" style="align-items:flex-start;margin-bottom:16px">
             <div class="col gap-1">
-              <label class="field-label" for="process-name">Process name</label>
-              <p class="hint">Name the specific process you want to map.</p>
+              <label class="field-label" for="process-name">Workflow name</label>
+              <p class="hint">Name the specific workflow you want to map.</p>
             </div>
             <div class="row gap-2" style="flex-shrink:0">
               <button type="button" class="btn btn-secondary" style="padding:6px 12px; min-width:34px; justify-content:center" data-action="open-help">?</button>
@@ -586,8 +586,8 @@
         </div>
 
         <div class="col" style="gap:2px">
-          <h2 style="font-size:14px;font-weight:600;color:var(--slate-800);margin:0">Build your process</h2>
-          <p class="hint">Add each step of the specific process from start to finish. Specify each part as a step, wait time, decision, or customer touchpoint.</p>
+          <h2 style="font-size:14px;font-weight:600;color:var(--slate-800);margin:0">Build your workflow</h2>
+          <p class="hint">Add each step of the specific workflow from start to finish. Specify each part as a step, wait time, decision, or customer touchpoint.</p>
         </div>
 
         <div class="col gap-3">
@@ -611,7 +611,7 @@
           data-action="generate" ${canGenerate ? "" : "disabled"}>
           Create Value Stream Map ${icon("arrowRight")}
         </button>
-        ${!canGenerate ? `<p class="generate-note">Add a process name and at least one named part to continue.</p>` : ""}
+        ${!canGenerate ? `<p class="generate-note">Add a workflow name and at least one named part to continue.</p>` : ""}
       </div>`;
   }
 
@@ -699,7 +699,7 @@
           <div class="stat">
             <p class="stat-label">Total lead time</p>
             <p class="stat-value">${formatDuration(a.totalMinutes)}</p>
-            <p class="stat-hint">The full time the process takes start to finish.</p>
+            <p class="stat-hint">The full time the workflow takes start to finish.</p>
           </div>
           <div class="stat">
             <p class="stat-label">Total work time</p>
@@ -764,14 +764,14 @@
           <div class="modal-body">
             <div class="modal-section">
               <h4 class="modal-section-title">How to use</h4>
-              <p>Begin by naming the specific process you want to analyze with a Value Stream Map. Add each part of the workflow as a step, wait time, decision, or customer touchpoint, and fill in their respective details.</p>
-              <p>If your process includes loops or branches, enter them as separate steps with the same name and details. Once all elements have been added click "Create Value Stream Map". The generated map will visualize your entire process from start to finish.</p>
+              <p>Begin by naming the specific workflow you want to analyze with a Value Stream Map. Add each part of the workflow as a step, wait time, decision, or customer touchpoint, and fill in their respective details.</p>
+              <p>If your workflow includes loops or branches, enter them as separate steps with the same name and details. Once all elements have been added click "Create Value Stream Map". The generated map will visualize your entire workflow from start to finish.</p>
             </div>
             <div class="modal-section">
               <h4 class="modal-section-title">Flagging</h4>
               <p>Five kinds of flags are raised, in priority order (a step only ever shows one flag, the highest-priority one it qualifies for):</p>
-              <p>1. Biggest bottleneck  - the single longest wait in the process.</p>
-              <p>2. Highest cost        - the single most expensive part of the process.</p>
+              <p>1. Biggest bottleneck  - the single longest wait in the workflow.</p>
+              <p>2. Highest cost        - the single most expensive part of the workflow.</p>
               <p>3. Notable delay       - any other wait that's a large share of total wait.</p>
               <p>4. Heaviest work step  - a single work step that dominates work time.</p>
               <p>5. Repeated task       - a step/task name that appears more than once.</p>
@@ -819,12 +819,12 @@
   function render() {
     const saved = saveFocus();
 
-    const headingText = state.view === "input" ? "Value Stream Mapping" : "Value Stream Map";
+    const headingText = "AI Value Stream Map Tool";
     root.innerHTML = `
       <div class="app">
         <header class="top no-print">
           <h1>${headingText}</h1>
-          <p>A value stream map is a big picture of a process from start to finish, allowing you to identify where time and resources are being wasted, and what steps in the workflow need to be fixed.</p>
+          <p>A value stream map is a big picture of a process from start to finish, allowing you to identify where time and resources can be improved, and what steps in the workflow need to be fixed.</p>
         </header>
         ${state.view === "input" ? renderInputPanel() : renderResultView()}
         ${renderHelpModal()}
@@ -985,7 +985,5 @@
   render();
 })();
 </script>
-</body>
-</html>
 </body>
 </html>
