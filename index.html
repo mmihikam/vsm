@@ -337,7 +337,7 @@
       { type: "decision", name: "Manager approves the account?", detail: "Manager checks credit and approves or rejects the new account.", minutes: 30, people: "Account manager", cost: "medium" },
       { type: "step", name: "Ops sets up the account", detail: "Provision the account, create logins and configure settings.", minutes: 90, people: "Operations", cost: "high" },
       { type: "wait", name: "Waiting on customer to confirm details", detail: "Team emails the customer and waits for a reply before going live.", minutes: 300, people: "Customer", cost: "low" },
-      { type: "step", name: "Go live & welcome call", detail: "Account is activated and the customer is walked through the basics.", minutes: 45, people: "Onboarding specialist", cost: "medium" },
+      { type: "step", name: "Go live & welcome call", detail: "Account is activated and the welcome call walked through the basics.", minutes: 45, people: "Onboarding specialist", cost: "medium" },
       { type: "communication", name: "Customer starts using the product", detail: "Customer receives access and confirmation of a completed setup.", minutes: 5, people: "Customer", cost: "" },
     ];
     return {
@@ -953,8 +953,10 @@
 
     switch (action) {
       case "clear-all":
-        state.process = { name: "", nodes: [] };
-        render();
+        if (window.confirm("Are you sure you want to clear all workflow data?")) {
+          state.process = { name: "", nodes: [] };
+          render();
+        }
         break;
       case "open-help":
         state.showHelpModal = true;
