@@ -508,6 +508,7 @@
     process: { name: "", nodes: [] },
     view: "input",
     showHelpModal: false,
+    showClearConfirmModal: false,
   };
 
   // Escapes dynamic input data safely inside attribute fields
@@ -791,7 +792,7 @@
     if (!state.showHelpModal) return "";
     return `
       <div class="modal-overlay" data-action="close-help">
-        <div class="modal-container" onclick="event.stopPropagation()">
+        <div class="modal-container">
           <div class="modal-header">
             <h3 class="modal-title">Help Guide</h3>
           </div>
@@ -814,6 +815,25 @@
             <div class="modal-section">
               <h4 class="modal-section-title">Printing</h4>
               <p>To print or save as pdf, click Print/Save as PDF. Choose landscape orientation, and change scale under more settings to fit on page as desired.</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderClearConfirmModal() {
+    if (!state.showClearConfirmModal) return "";
+    return `
+      <div class="modal-overlay" data-action="cancel-clear">
+        <div class="modal-container" style="max-width:420px">
+          <div class="modal-header">
+            <h3 class="modal-title">Clear workflow data?</h3>
+          </div>
+          <div class="modal-body">
+            <p style="margin-bottom:16px">This will remove the current workflow name and all steps you’ve entered. You can’t undo this action.</p>
+            <div class="row gap-2" style="justify-content:flex-end">
+              <button type="button" class="btn btn-secondary" data-action="cancel-clear">Cancel</button>
+              <button type="button" class="btn btn-primary" data-action="confirm-clear">Clear</button>
             </div>
           </div>
         </div>
@@ -863,6 +883,7 @@
         </header>
         ${state.view === "input" ? renderInputPanel() : renderResultView()}
         ${renderHelpModal()}
+        ${renderClearConfirmModal()}
       </div>`;
 
     restoreFocus(saved);
@@ -970,13 +991,24 @@
     if (!btn) return;
     const action = btn.dataset.action;
     const nodeId = btn.dataset.nodeId;
+    const clickedInsideModal = !!e.target.closest(".modal-container");
+    const isOverlayDismissAction = (action === "close-help" || action === "cancel-clear") && btn.classList.contains("modal-overlay") && clickedInsideModal;
+
+    if (isOverlayDismissAction) return;
 
     switch (action) {
       case "clear-all":
-        if (window.confirm("Are you sure you want to clear all workflow data?")) {
-          state.process = { name: "", nodes: [] };
-          render();
-        }
+        state.showClearConfirmModal = true;
+        render();
+        break;
+      case "cancel-clear":
+        state.showClearConfirmModal = false;
+        render();
+        break;
+      case "confirm-clear":
+        state.showClearConfirmModal = false;
+        state.process = { name: "", nodes: [] };
+        render();
         break;
       case "open-help":
         state.showHelpModal = true;
