@@ -39,6 +39,8 @@ This tool is designed for operational diagnostics, process engineering, and lean
 - Wait time: Delays, queues, or idle holding periods.
 - Decision: Strategic pivot points or approval checkpoints.
 - Customer touchpoint: Direct communications or hand-offs sent to/received from a client.
+- External Vendor: Tasks, deliverables, or services outsourced to a third-party partner.
+- Interdepartmental Handoff: The transfer of data or tasks between different internal teams.
   
 **4.** Fill out Component Attributes as you go.
 - Name & Details: Provide a concise title and description for the step.
@@ -67,6 +69,7 @@ What gets flagged as a problem area in order of priority:
 | Flag | Trigger Condition |
 | ---- | ----------------- |
 | Biggest bottleneck | Single longest wait node in the entire sequence |
+| High vendor cost | External vendor step with high cost |
 | Highest cost | Step carrying the highest cost tier |
 | Notable delay | Secondary wait periods that account for 20% or more of all wait time |
 | Heaviest work step | Work nodes consuming 45% or more of total processing effort |
