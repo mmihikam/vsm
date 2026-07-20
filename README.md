@@ -106,7 +106,7 @@ To publish changes:
 7. Changes will automatically be updated on the website
 
 ### Creating a new repository
-1. Based on another repository:
+1. If you want one based on another repository:
    - Go to dashboard of the repository you want to clone
    - Click on the green code button
    - Click download zip
@@ -120,7 +120,7 @@ To publish changes:
    - Select all the files from the unzipped folder
    - Upload them 
 
-1. Brand new blank repository:
+1. If you want a brand new blank repository (ignore if you've already created it):
    - Click the github cat logo at top left (homepage)
    - Click green "New" button at top left
    - Fill out details and click green "Create repository" button
