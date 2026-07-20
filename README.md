@@ -95,18 +95,41 @@ The self contained layout includes:
 >
 > [Describe specific changes here]
 
-### Publishing Changes
+### Publishing changes to existing repository
 To publish changes:
-1. Create a Github account
-2. Create a new repository
-3. Create a new file, paste the new code in
-4. Name the new file "index.html"
-5. Copy/paste this readme into your repository's readme
-6. Go to repository settings
-7. Click pages
-8. Publish the repository as a page
-9. The new page will have the changes, use the new link from now on.
-10. Replace the old link with the new one (e.g. in sharepoint, in the readme)
+1. Log in to GitHub
+2. Find the repository you are working in
+3. Click the index.html file
+4. Click the edit button (pen icon)
+5. Make/paste changes
+6. Press green "Commit changes" button
+7. Changes will automatically be updated on the website
+
+### Creating a new repository
+1. Based on another repository:
+   - Go to dashboard of the repository you want to clone
+   - Click on the green code button
+   - Click download zip
+   - Open your File Explorer app
+   - Right click the zip file you downloaded and click extract all
+   - Go to github homepage
+   - Click the new button (to create new repository)
+   - Fill in details and click create repository
+   - Click add file
+   - Click upload file
+   - Select all the files from the unzipped folder
+   - Upload them 
+
+1. Brand new blank repository:
+   - Click the github cat logo at top left (homepage)
+   - Click green "New" button at top left
+   - Fill out details and click green "Create repository" button
+
+3. Click settings, pages
+4. Under branch, change none to main
+5. Press save
+6. Wait a minute then refresh the page, the link will show up
+7. The new page will have the changes, use the new link from now on
 
 *Note: Once a repository is created, the index file can be edited by the owner and the page will automatically update. A new repository only needs to be created if access is not granted to the current one, and changes need to be published.*
 
