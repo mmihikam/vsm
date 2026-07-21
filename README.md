@@ -153,7 +153,7 @@ Formatting:
 - Process: major steps where work occurs
 - Data: underneath each process block – the quantifiable metrics
 - Flag points in the flow where improvements are needed
-- 
+  
 The flow should be from a customer’s perspective. The time ladder in standard VSMs can be confusing, instead focus on the total wait time vs processing time (actual work), and their relation to the total time.
 Input section: Before a diagram is filled out the user should be able to input the needed details. Then with all of the details, a vsm diagram can be generated. Details should be editable even after diagram is shown.
 The overall goal is for someone who’s never seen a VSM to be able to use this to identify problem areas in their process.
