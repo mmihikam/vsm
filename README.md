@@ -134,23 +134,30 @@ To publish changes:
 *Note: Once a repository is created, the index file can be edited by the owner and the page will automatically update. A new repository only needs to be created if access is not granted to the current one, and changes need to be published.*
 
 Initial Prompt for this tool:
+
 Create an interface where information can be input and a simplified VSM diagram is output. Goals of output: Distinguish between value adding activities and non-value adding activities, Find the root sources of non-value adding activities so that they can be eliminated for faster processes, This tool should be on the macro scale, covering the full process from start to finish. Problem areas (bottlenecks, inefficiencies, etc) should be flagged, so that when you hover over a flag symbol you can see more information about that problem area and how it might be fixed. 
 What symbols VSM diagram should include: (have a key with these reworded)
-Step - Something someone does
-Wait time- Nothing is happening, but time is passing
-Decision - Someone has to choose yes/no or approve something
-Problem - Something causes confusion, mistakes, delays, or rework
-Customer communication -  Needs of the customer
+
+- Step - Something someone does
+- Wait time- Nothing is happening, but time is passing
+- Decision - Someone has to choose yes/no or approve something
+- Problem - Something causes confusion, mistakes, delays, or rework
+- Customer communication -  Needs of the customer
+
 Do not use symbols from standard VSM diagrams. The goal is to make this a simple and easy to understand diagram for someone does not know what a VSM is. Use labels to explain what parts are instead of relying on symbols. (The red flag symbol should be used for problem areas though). Since standard symbols aren’t necessary use simple shapes that fit best.
 Red flag areas should be done automatically, and should be based on how much time the user has inputted. For example – wherever the majority of the wait time is should be flagged. It should not be the responsibility of the user to identify the red flag areas. That’s the part we are automating.
+
 Formatting:
-•	How a customer communicates to business
-•	Process: major steps where work occurs
-•	Data: underneath each process block – the quantifiable metrics
-•	Flag points in the flow where improvements are needed
+
+- How a customer communicates to business
+- Process: major steps where work occurs
+- Data: underneath each process block – the quantifiable metrics
+- Flag points in the flow where improvements are needed
+- 
 The flow should be from a customer’s perspective. The time ladder in standard VSMs can be confusing, instead focus on the total wait time vs processing time (actual work), and their relation to the total time.
 Input section: Before a diagram is filled out the user should be able to input the needed details. Then with all of the details, a vsm diagram can be generated. Details should be editable even after diagram is shown.
 The overall goal is for someone who’s never seen a VSM to be able to use this to identify problem areas in their process.
+
 Design: Keep the design professional and sleek and extremely simple. Standard VSMs focus on manufacturing, tailor this one to be able to be more process oriented (for example if there is no physical product in the process, the user can skip a transportation field). Keep a light theme with blues. Only use shades of greyish and light blue, no other colors.
 The second window created VSM should have a button to download the created VSM as a pdf. The attached images have some layout structure to follow.
 
